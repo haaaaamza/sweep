@@ -1,0 +1,288 @@
+{
+  "source": "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/AppSweep/AppSweepModule.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Hide",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quit",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 43
+        }
+      },
+      {
+        "comment": "",
+        "key": "Off",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "15 minutes",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "30 minutes",
+        "location": {
+          "startingColumn": 52,
+          "startingLine": 58
+        }
+      },
+      {
+        "comment": "",
+        "key": "1 hour",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 59
+        }
+      },
+      {
+        "comment": "",
+        "key": "5 hours",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "App Sweep"
+      },
+      {
+        "comment": "",
+        "key": "Hide every running app in one click, bring them all back with the next."
+      },
+      {
+        "comment": "",
+        "key": "Swept",
+        "location": {
+          "startingColumn": 64,
+          "startingLine": 410
+        }
+      },
+      {
+        "comment": "",
+        "key": "Apps were asked to quit — restore reopens them.",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 439
+        }
+      },
+      {
+        "comment": "",
+        "key": "Apps are hidden, not quit — nothing is lost.",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 440
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reopen Apps",
+        "location": {
+          "startingColumn": 61,
+          "startingLine": 450
+        }
+      },
+      {
+        "comment": "",
+        "key": "Bring Apps Back",
+        "location": {
+          "startingColumn": 61,
+          "startingLine": 451
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close All Apps",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 453
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hide All Apps",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 454
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reopening in %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 429
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 433
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sweep mode",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 468
+        }
+      },
+      {
+        "comment": "",
+        "key": "What happens to swept apps",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 472
+        }
+      },
+      {
+        "comment": "",
+        "key": "Apps are asked to quit politely — unsaved work always gets a save dialog, and Finder is only hidden. Restore reopens everything. Saves battery.",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 474
+        }
+      },
+      {
+        "comment": "",
+        "key": "Apps are hidden, never quit. Restore is instant and nothing can be lost.",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 475
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reopen automatically",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 488
+        }
+      },
+      {
+        "comment": "",
+        "key": "After a sweep, bring the whole session back by itself — get back in the flow.",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 489
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 476
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 490
+        }
+      },
+      {
+        "comment": "",
+        "key": "Permissions",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 502
+        }
+      },
+      {
+        "comment": "",
+        "key": "Accessibility",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 506
+        }
+      },
+      {
+        "comment": "",
+        "key": "Granted — full-screen and split-view apps are hidden too.",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 508
+        }
+      },
+      {
+        "comment": "",
+        "key": "Not granted — full-screen and split-view windows can't be hidden. Normal windows still work.",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 509
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open System Settings…",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 511
+        }
+      },
+      {
+        "comment": "",
+        "key": "Never hide these apps",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 521
+        }
+      },
+      {
+        "comment": "",
+        "key": "Turn an app ON to protect it — Sweep will never hide it. Everything OFF here gets swept. Sweep itself is always protected.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 524
+        }
+      },
+      {
+        "comment": "",
+        "key": "Also excluded (not currently running): %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 552
+        }
+      },
+      {
+        "comment": "",
+        "key": "Never hidden",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 539
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 543
+        }
+      }
+    ]
+  },
+  "version": 1
+}

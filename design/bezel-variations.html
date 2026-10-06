@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sweep — Clipboard Bezel Design Variations</title>
+<style>
+  :root {
+    --ink: #e8ecef;
+    --ink-2: rgba(232,236,239,.62);
+    --ink-3: rgba(232,236,239,.38);
+    --accent: #4da3ff;
+    --hud: rgba(30,34,38,.62);
+    --hud-line: rgba(255,255,255,.12);
+    --chip: rgba(255,255,255,.09);
+    --page: #101316;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    background: var(--page);
+    color: var(--ink);
+    padding: 48px 16px 120px;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; }
+  h1 { font-size: 30px; letter-spacing: -.02em; }
+  .sub { color: var(--ink-2); margin: 10px 0 48px; max-width: 720px; line-height: 1.5; }
+  .variation { margin-bottom: 72px; }
+  .variation h2 { font-size: 20px; letter-spacing: -.01em; }
+  .variation h2 .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 8px; margin-right: 10px;
+    background: var(--accent); color: #0b1016; font-size: 14px; vertical-align: 2px;
+  }
+  .variation .note { color: var(--ink-2); font-size: 14px; line-height: 1.55; margin: 8px 0 18px; max-width: 760px; }
+  .variation .note b { color: var(--ink); font-weight: 600; }
+
+  /* Fake desktop wallpaper behind every mock, so blur/translucency reads */
+  .stage {
+    position: relative; border-radius: 16px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 470px; padding: 28px;
+    background:
+      radial-gradient(900px 300px at 15% 0%, rgba(214,170,80,.35), transparent 60%),
+      radial-gradient(700px 420px at 85% 15%, rgba(220,150,60,.28), transparent 60%),
+      radial-gradient(800px 500px at 50% 110%, rgba(16,48,38,.9), transparent 70%),
+      linear-gradient(160deg, #27483f 0%, #1c3a35 35%, #52714b 60%, #24433b 100%);
+  }
+  .stage::before {  /* soft "trees" texture */
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(120px 220px at 12% 88%, rgba(10,30,22,.75), transparent 70%),
+      radial-gradient(160px 260px at 30% 95%, rgba(10,30,22,.7), transparent 70%),
+      radial-gradient(140px 240px at 55% 92%, rgba(10,30,22,.65), transparent 70%),
+      radial-gradient(170px 280px at 78% 96%, rgba(10,30,22,.7), transparent 70%),
+      radial-gradient(120px 200px at 94% 90%, rgba(10,30,22,.7), transparent 70%);
+  }
+
+  /* ---------- shared HUD pieces ---------- */
+  .hud {
+    position: relative;
+    background: var(--hud);
+    -webkit-backdrop-filter: blur(26px) saturate(1.3);
+    backdrop-filter: blur(26px) saturate(1.3);
+    border: 1px solid var(--hud-line);
+    border-radius: 18px;
+    box-shadow: 0 24px 70px rgba(0,0,0,.45);
+    color: var(--ink);
+  }
+  .appicon {
+    width: 30px; height: 30px; border-radius: 8px; flex: none;
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+    background: linear-gradient(145deg, #3f8cff, #1d5fd0);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.3);
+  }
+  .appicon.small { width: 22px; height: 22px; border-radius: 6px; font-size: 13px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11.5px; font-weight: 500; color: var(--ink-2);
+    background: var(--chip); border-radius: 999px; padding: 5px 11px;
+  }
+  .counter { font-size: 11.5px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .hints { font-size: 11.5px; color: var(--ink-3); }
+  kbd {
+    font-family: inherit; font-size: 10.5px; color: var(--ink-2);
+    background: var(--chip); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 5px; padding: 1px 5px;
+  }
+  .textblock {
+    background: rgba(255,255,255,.07);
+    border-radius: 10px; width: 100%;
+  }
+  .thumb {
+    width: 44px; height: 32px; border-radius: 6px; flex: none;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.12);
+    overflow: hidden; opacity: .6; position: relative;
+  }
+  .thumb.sel { opacity: 1; border: 2px solid var(--accent); transform: scale(1.08); }
+  .thumb .micro { font-size: 5.5px; line-height: 1.35; color: var(--ink-2); padding: 3px; display: block; }
+  .thumb.img1 { background: linear-gradient(135deg,#355d4e,#7fa05a 60%,#b98b43); }
+  .thumb.img2 { background: linear-gradient(135deg,#2a3f58,#5e86a8 60%,#cfd8dd); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.28); }
+  .dot.sel { background: var(--accent); width: 18px; border-radius: 4px; }
+
+  /* ---------- 1. Refined HUD (current) ---------- */
+  .v1 { width: 560px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .v1 .head { display: flex; align-items: center; gap: 10px; }
+  .v1 .who b { display: block; font-size: 14px; }
+  .v1 .who span { font-size: 11.5px; color: var(--ink-2); }
+  .v1 .content {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 17px; font-weight: 500; text-align: center; padding: 26px 18px; min-height: 180px;
+  }
+  .v1 .strip { display: flex; gap: 6px; justify-content: center; }
+  .v1 .foot { display: flex; justify-content: space-between; align-items: center; }
+
+  /* ---------- 2. Flycut classic ---------- */
+  .v2 { width: 480px; padding: 24px; display: flex; flex-direction: column; gap: 16px; border-radius: 22px; }
+  .v2 .top { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); }
+  .v2 .big { font-size: 21px; font-weight: 600; line-height: 1.35; text-align: left; min-height: 150px; }
+  .v2 .pill {
+    align-self: center; font-size: 12px; font-weight: 600; color: var(--ink-2);
+    background: rgba(0,0,0,.35); padding: 5px 14px; border-radius: 999px;
+  }
+
+  /* ---------- 3. Card deck ---------- */
+  .v3-scene { position: relative; width: 640px; height: 330px; display:flex; align-items:center; justify-content:center; }
+  .v3-card {
+    position: absolute; width: 400px; height: 280px; padding: 16px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .v3-card.prev { transform: translateX(-180px) scale(.86); opacity: .45; filter: blur(.5px); }
+  .v3-card.next { transform: translateX(180px) scale(.86); opacity: .45; filter: blur(.5px); }
+  .v3-card.cur { z-index: 2; border-color: rgba(77,163,255,.5); }
+  .v3-card .head { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; }
+  .v3-card .head time { margin-left: auto; font-weight: 400; font-size: 11px; color: var(--ink-2); }
+  .v3-card .body { flex: 1; font-size: 13px; color: var(--ink); padding: 10px; overflow: hidden; line-height: 1.45; }
+  .v3-card .imgbody { flex: 1; border-radius: 10px; background: linear-gradient(135deg,#355d4e,#7fa05a 60%,#b98b43); }
+  .v3-dots { position: absolute; bottom: -4px; left: 0; right: 0; display: flex; gap: 5px; justify-content: center; }
+
+  /* ---------- 4. Filmstrip-first ---------- */
+  .v4 { width: 600px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .v4 .preview { height: 120px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; padding: 0 20px; text-align: center; }
+  .v4 .rail { display: flex; gap: 10px; justify-content: center; align-items: flex-end; }
+  .v4 .cell {
+    width: 86px; height: 64px; border-radius: 10px; overflow: hidden; position: relative;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); opacity: .55;
+  }
+  .v4 .cell .micro { font-size: 7px; line-height: 1.4; color: var(--ink-2); padding: 6px; display: block; }
+  .v4 .cell.img1 { background: linear-gradient(135deg,#355d4e,#7fa05a 60%,#b98b43); }
+  .v4 .cell.img2 { background: linear-gradient(135deg,#2a3f58,#5e86a8 60%,#cfd8dd); }
+  .v4 .cell.sel { width: 104px; height: 78px; opacity: 1; border: 2px solid var(--accent); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+  .v4 .cell .tag {
+    position: absolute; left: 5px; bottom: 5px; font-size: 8.5px; font-weight: 600;
+    background: rgba(0,0,0,.55); border-radius: 4px; padding: 2px 5px; color: var(--ink-2);
+  }
+  .v4 .foot { display: flex; justify-content: space-between; align-items: center; }
+
+  /* ---------- 5. List + preview ---------- */
+  .v5 { width: 640px; height: 360px; display: flex; overflow: hidden; padding: 0; }
+  .v5 .list { width: 250px; border-right: 1px solid var(--hud-line); padding: 10px; display: flex; flex-direction: column; gap: 3px; }
+  .v5 .row {
+    display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 8px;
+    font-size: 12.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden;
+  }
+  .v5 .row .n { font-size: 10px; color: var(--ink-3); width: 12px; flex: none; font-variant-numeric: tabular-nums; }
+  .v5 .row .t { overflow: hidden; text-overflow: ellipsis; }
+  .v5 .row.sel { background: rgba(77,163,255,.22); color: var(--ink); }
+  .v5 .row .mini { width: 22px; height: 16px; border-radius: 4px; flex: none; background: linear-gradient(135deg,#355d4e,#7fa05a 60%,#b98b43); }
+  .v5 .pane { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .v5 .pane .head { display: flex; align-items: center; gap: 8px; }
+  .v5 .pane .head b { font-size: 13.5px; }
+  .v5 .pane .head span { font-size: 11px; color: var(--ink-2); margin-left: auto; }
+  .v5 .pane .body { flex: 1; font-size: 13px; line-height: 1.5; padding: 12px; }
+  .v5 .pane .foot { display: flex; justify-content: space-between; align-items: center; }
+
+  /* ---------- 6. Bottom bar (Paste style) ---------- */
+  .v6-stage { align-items: flex-end; }
+  .v6 { width: 100%; max-width: 900px; padding: 16px 18px 14px; border-radius: 18px 18px 0 0; display: flex; flex-direction: column; gap: 12px; }
+  .v6 .cards { display: flex; gap: 12px; }
+  .v6 .card {
+    width: 168px; height: 140px; border-radius: 12px; overflow: hidden; flex: none;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+    display: flex; flex-direction: column; opacity: .75;
+  }
+  .v6 .card.sel { opacity: 1; border: 2px solid var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,.4); transform: translateY(-6px); }
+  .v6 .card .cap { font-size: 10px; font-weight: 600; color: var(--ink-2); padding: 7px 9px 5px; display: flex; gap: 6px; align-items: center; }
+  .v6 .card .cap .sq { width: 12px; height: 12px; border-radius: 3px; background: linear-gradient(145deg,#3f8cff,#1d5fd0); flex: none; }
+  .v6 .card .tx { font-size: 10px; line-height: 1.45; color: var(--ink); padding: 0 9px; overflow: hidden; }
+  .v6 .card .im { flex: 1; background: linear-gradient(135deg,#355d4e,#7fa05a 60%,#b98b43); margin-top: 2px; }
+  .v6 .card .im.b { background: linear-gradient(135deg,#2a3f58,#5e86a8 60%,#cfd8dd); }
+  .v6 .foot { display: flex; justify-content: space-between; }
+
+  /* ---------- 7. Compact pill ---------- */
+  .v7 { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-radius: 999px; max-width: 560px; }
+  .v7 .tx { font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 290px; }
+  .v7 .meta { font-size: 11px; color: var(--ink-2); white-space: nowrap; }
+  .v7 .dots { display: flex; gap: 4px; align-items: center; }
+
+  /* ---------- 8. Metadata sidebar ---------- */
+  .v8 { width: 640px; height: 340px; display: flex; padding: 0; overflow: hidden; }
+  .v8 .main { flex: 1; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .v8 .main .body { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; text-align: center; padding: 20px; }
+  .v8 .main .strip { display: flex; gap: 6px; justify-content: center; }
+  .v8 .side { width: 190px; border-left: 1px solid var(--hud-line); background: rgba(0,0,0,.18); padding: 16px 14px; display: flex; flex-direction: column; gap: 13px; }
+  .v8 .side .approw { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+  .v8 .side dl { display: flex; flex-direction: column; gap: 9px; }
+  .v8 .side dt { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+  .v8 .side dd { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+  .v8 .side .keys { margin-top: auto; display: flex; flex-direction: column; gap: 6px; font-size: 10.5px; color: var(--ink-3); }
+
+  /* ---------- 9. Grid picker ---------- */
+  .v9 { width: 560px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .v9 .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .v9 .cell {
+    height: 92px; border-radius: 10px; overflow: hidden; position: relative;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); opacity: .7;
+  }
+  .v9 .cell.sel { opacity: 1; border: 2px solid var(--accent); box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+  .v9 .cell .tx { font-size: 9px; line-height: 1.45; color: var(--ink-2); padding: 8px; display: block; }
+  .v9 .cell.img1 { background: linear-gradient(135deg,#355d4e,#7fa05a 60%,#b98b43); }
+  .v9 .cell.img2 { background: linear-gradient(135deg,#2a3f58,#5e86a8 60%,#cfd8dd); }
+  .v9 .cell .k {
+    position: absolute; top: 6px; left: 6px; width: 16px; height: 16px; border-radius: 4px;
+    background: rgba(0,0,0,.5); color: var(--ink-2); font-size: 9.5px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .v9 .foot { display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Clipboard Bezel — 9 design variations</h1>
+  <p class="sub">Mockups for Sweep's ⌘⇧V clipboard history overlay, rendered over a desktop-like backdrop so the HUD translucency reads the way it would on screen. Same data in every mock: a text clipping from Finder, cycling through 9 items.</p>
+
+  <!-- 1 -->
+  <section class="variation">
+    <h2><span class="num">1</span>Refined HUD <em style="color:var(--ink-3); font-size:13px; font-style:normal">— what's implemented now</em></h2>
+    <p class="note"><b>Header with app + relative time, kind badge, filmstrip, hint line.</b> Balanced information density; the filmstrip gives a sense of place in the stack. Baseline to compare the rest against.</p>
+    <div class="stage">
+      <div class="hud v1">
+        <div class="head">
+          <div class="appicon">😀</div>
+          <div class="who"><b>Finder</b><span>2 minutes ago · Oct 6, 2026 at 11:01 AM</span></div>
+          <span class="badge" style="margin-left:auto">✎ 38 characters</span>
+        </div>
+        <div class="content textblock">Screenshot 2026-10-06 at 10.52.16 AM</div>
+        <div class="strip">
+          <span class="thumb"><span class="micro">let timer = Timer.scheduled…</span></span>
+          <span class="thumb img2"></span>
+          <span class="thumb sel"><span class="micro">Screenshot 2026-10-06 at 10.52.16 AM</span></span>
+          <span class="thumb img1"></span>
+          <span class="thumb"><span class="micro">https://developer.apple.com/…</span></span>
+          <span class="thumb"><span class="micro">qateam@…</span></span>
+        </div>
+        <div class="foot">
+          <span class="counter">3 of 9</span>
+          <span class="hints"><kbd>⌘⇧V</kbd> or <kbd>←</kbd><kbd>→</kbd> cycle · release to choose · <kbd>⎋</kbd> cancel</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="variation">
+    <h2><span class="num">2</span>Flycut Classic</h2>
+    <p class="note"><b>Radically minimal, faithful to the original.</b> Just source + time up top, the clipping big in the middle, a counter pill. Zero learning curve, least visual noise — but no sense of what's next/previous and no image affordances.</p>
+    <div class="stage">
+      <div class="hud v2">
+        <div class="top"><span style="display:flex;gap:7px;align-items:center"><span class="appicon small">😀</span> <b style="color:var(--ink)">Finder</b></span><span>Tuesday 11:01 AM</span></div>
+        <div class="big">Screenshot 2026-10-06 at 10.52.16 AM</div>
+        <div class="pill">3 of 9</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="variation">
+    <h2><span class="num">3</span>Card Deck</h2>
+    <p class="note"><b>Neighbors peek from the sides, like a cover-flow of cards.</b> Cycling feels physical — the previous and next clippings are literally visible and slide across. Great for images; costs horizontal space and shows less of each clipping.</p>
+    <div class="stage">
+      <div class="v3-scene">
+        <div class="hud v3-card prev">
+          <div class="head"><span class="appicon small">🌐</span> Safari <time>11:00 AM</time></div>
+          <div class="body textblock">https://developer.apple.com/documentation/appkit/nspasteboard</div>
+        </div>
+        <div class="hud v3-card next">
+          <div class="head"><span class="appicon small">🖥</span> Terminal <time>10:58 AM</time></div>
+          <div class="imgbody"></div>
+        </div>
+        <div class="hud v3-card cur">
+          <div class="head"><span class="appicon small">😀</span> Finder <time>11:01 AM</time></div>
+          <div class="body textblock" style="display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;text-align:center">Screenshot 2026-10-06 at 10.52.16 AM</div>
+          <div style="display:flex;justify-content:space-between"><span class="counter">3 of 9</span><span class="hints">release to choose</span></div>
+        </div>
+        <div class="v3-dots">
+          <span class="dot"></span><span class="dot"></span><span class="dot sel"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="variation">
+    <h2><span class="num">4</span>Filmstrip-First</h2>
+    <p class="note"><b>The strip of big thumbnails IS the interface;</b> the selected one grows, a slim preview above shows the full content. Fastest visual scanning of mixed text/image history; text-heavy histories read worse at thumbnail size.</p>
+    <div class="stage">
+      <div class="hud v4">
+        <div class="preview textblock">Screenshot 2026-10-06 at 10.52.16 AM</div>
+        <div class="rail">
+          <span class="cell"><span class="micro">let timer = Timer.scheduledTimer(withTimeInterval: 0.5)…</span><span class="tag">SWIFT</span></span>
+          <span class="cell img2"><span class="tag">IMG</span></span>
+          <span class="cell sel"><span class="micro" style="font-size:8px">Screenshot 2026-10-06 at 10.52.16 AM</span><span class="tag">TEXT</span></span>
+          <span class="cell img1"><span class="tag">IMG</span></span>
+          <span class="cell"><span class="micro">https://developer.apple.com/documentation/appkit…</span><span class="tag">URL</span></span>
+        </div>
+        <div class="foot">
+          <span style="display:flex;gap:7px;align-items:center"><span class="appicon small">😀</span><span style="font-size:12px;font-weight:600">Finder</span><span class="hints">· 2 min ago</span></span>
+          <span class="counter">3 of 9</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="variation">
+    <h2><span class="num">5</span>List + Preview <em style="color:var(--ink-3); font-size:13px; font-style:normal">— Maccy / Raycast style</em></h2>
+    <p class="note"><b>Vertical list on the left (↑↓ to move), full preview on the right.</b> Best for long histories and long text — you see many items at once with real titles. Feels more like a utility window than a fleeting bezel.</p>
+    <div class="stage">
+      <div class="hud v5">
+        <div class="list">
+          <div class="row"><span class="n">1</span><span class="t">let timer = Timer.scheduledTim…</span></div>
+          <div class="row"><span class="n">2</span><span class="mini" style="background:linear-gradient(135deg,#2a3f58,#5e86a8 60%,#cfd8dd)"></span><span class="t">Image · 1290 × 1080</span></div>
+          <div class="row sel"><span class="n">3</span><span class="t">Screenshot 2026-10-06 at 10.52…</span></div>
+          <div class="row"><span class="n">4</span><span class="mini"></span><span class="t">Image · 2000 × 1250</span></div>
+          <div class="row"><span class="n">5</span><span class="t">https://developer.apple.com/do…</span></div>
+          <div class="row"><span class="n">6</span><span class="t">qateamworking@gmail.com</span></div>
+          <div class="row"><span class="n">7</span><span class="t">cd ~/Desktop/Mac\ App/Sweep</span></div>
+        </div>
+        <div class="pane">
+          <div class="head"><span class="appicon small">😀</span><b>Finder</b><span>2 min ago · 11:01 AM</span></div>
+          <div class="body textblock">Screenshot 2026-10-06 at 10.52.16 AM</div>
+          <div class="foot"><span class="counter">3 of 9</span><span class="hints"><kbd>↑</kbd><kbd>↓</kbd> move · <kbd>↩</kbd> paste · <kbd>⎋</kbd> cancel</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="variation">
+    <h2><span class="num">6</span>Bottom Bar <em style="color:var(--ink-3); font-size:13px; font-style:normal">— Paste style</em></h2>
+    <p class="note"><b>A full-width shelf that slides up from the bottom edge,</b> big cards side by side, ←/→ or the shortcut to move. Very browsable and image-friendly; takes the most screen real estate and feels like a mode, not a flick.</p>
+    <div class="stage v6-stage" style="padding-bottom:0">
+      <div class="hud v6" style="border-bottom:none">
+        <div class="cards">
+          <div class="card"><div class="cap"><span class="sq"></span>Xcode · 10:55</div><div class="tx">let timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in self?.captureIfChanged() }</div></div>
+          <div class="card"><div class="cap"><span class="sq"></span>Safari · 10:58</div><div class="im b"></div></div>
+          <div class="card sel"><div class="cap"><span class="sq"></span>Finder · 11:01</div><div class="tx" style="font-size:12px;font-weight:600;padding-top:14px;text-align:center">Screenshot 2026-10-06 at 10.52.16 AM</div></div>
+          <div class="card"><div class="cap"><span class="sq"></span>Terminal · 10:52</div><div class="im"></div></div>
+          <div class="card"><div class="cap"><span class="sq"></span>Safari · 10:50</div><div class="tx">https://developer.apple.com/documentation/appkit/nspasteboard — NSPasteboard | Apple Developer Documentation</div></div>
+        </div>
+        <div class="foot"><span class="counter">3 of 9</span><span class="hints"><kbd>⌘⇧V</kbd> / <kbd>←</kbd><kbd>→</kbd> cycle · release to choose · <kbd>⎋</kbd> cancel</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="variation">
+    <h2><span class="num">7</span>Compact Pill</h2>
+    <p class="note"><b>The anti-bezel: a one-line capsule near the top of the screen,</b> like a volume HUD. One clipping at a time, dots for position. Nearly invisible footprint, ideal for text-only muscle-memory use; weak for images and long text.</p>
+    <div class="stage" style="align-items:flex-start; padding-top:60px">
+      <div class="hud v7">
+        <span class="appicon small">😀</span>
+        <span class="tx">Screenshot 2026-10-06 at 10.52.16 AM</span>
+        <span class="meta">38 ch · 2 min</span>
+        <span class="dots">
+          <span class="dot"></span><span class="dot"></span><span class="dot sel"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="variation">
+    <h2><span class="num">8</span>Metadata Sidebar</h2>
+    <p class="note"><b>Content front and center, everything else in a quiet right rail:</b> source app, when, kind, size, and the key hints pinned at the bottom. Cleanest reading surface for the clipping itself; the widest layout of the set.</p>
+    <div class="stage">
+      <div class="hud v8">
+        <div class="main">
+          <div class="body textblock">Screenshot 2026-10-06 at 10.52.16 AM</div>
+          <div class="strip">
+            <span class="thumb"><span class="micro">let timer = Timer…</span></span>
+            <span class="thumb img2"></span>
+            <span class="thumb sel"><span class="micro">Screenshot 2026-10-06…</span></span>
+            <span class="thumb img1"></span>
+            <span class="thumb"><span class="micro">https://developer…</span></span>
+          </div>
+        </div>
+        <div class="side">
+          <div class="approw"><span class="appicon small">😀</span> Finder</div>
+          <dl>
+            <div><dt>Copied</dt><dd>2 minutes ago<br>Oct 6 · 11:01 AM</dd></div>
+            <div><dt>Kind</dt><dd>Plain text</dd></div>
+            <div><dt>Length</dt><dd>38 characters</dd></div>
+            <div><dt>Position</dt><dd>3 of 9</dd></div>
+          </dl>
+          <div class="keys">
+            <span><kbd>⌘⇧V</kbd> next</span>
+            <span><kbd>←</kbd><kbd>→</kbd> navigate</span>
+            <span>release · choose</span>
+            <span><kbd>⎋</kbd> cancel</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="variation">
+    <h2><span class="num">9</span>Grid Picker</h2>
+    <p class="note"><b>A 3×3 board of the 9 most recent clippings, each with a number key.</b> No cycling at all — press the digit (or arrows) and you're done in one keystroke. Fastest selection for power users; drops the "flick through" feel entirely.</p>
+    <div class="stage">
+      <div class="hud v9">
+        <div class="grid">
+          <span class="cell"><span class="k">1</span><span class="tx">let timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true)…</span></span>
+          <span class="cell img2"><span class="k">2</span></span>
+          <span class="cell sel"><span class="k">3</span><span class="tx" style="font-size:11px;font-weight:600;padding-top:24px;text-align:center">Screenshot 2026-10-06 at 10.52.16 AM</span></span>
+          <span class="cell img1"><span class="k">4</span></span>
+          <span class="cell"><span class="k">5</span><span class="tx">https://developer.apple.com/documentation/appkit/nspasteboard</span></span>
+          <span class="cell"><span class="k">6</span><span class="tx">qateamworking@gmail.com</span></span>
+          <span class="cell"><span class="k">7</span><span class="tx">cd ~/Desktop/Mac\ App/Sweep && xcodebuild -scheme Sweep build</span></span>
+          <span class="cell"><span class="k">8</span><span class="tx">Co-Authored-By: …</span></span>
+          <span class="cell"><span class="k">9</span><span class="tx">tccutil reset Accessibility com.hassan.Sweep</span></span>
+        </div>
+        <div class="foot">
+          <span class="hints"><kbd>1</kbd>–<kbd>9</kbd> pick instantly · arrows + release also work</span>
+          <span class="counter">9 remembered</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Core/FeatureModule.swift" : {
+    "abi-baseline-json" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/Sweep.abi.json",
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/Sweep-primary.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/Sweep-primary.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/Sweep-primary.dia",
+    "objc-header" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/Sweep-Swift.h",
+    "swiftdoc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/Sweep.swiftdoc",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/Sweep.swiftmodule",
+    "swiftsourceinfo" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/Sweep.swiftsourceinfo"
+  }
+}

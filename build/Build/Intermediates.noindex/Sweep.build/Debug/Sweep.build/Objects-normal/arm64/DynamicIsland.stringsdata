@@ -1,0 +1,864 @@
+{
+  "source": "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/DynamicIsland.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Compact",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "Spacious",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 45
+        }
+      },
+      {
+        "comment": "",
+        "key": "Custom",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 46
+        }
+      },
+      {
+        "comment": "",
+        "key": "Desktop",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "Apps",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "Keep awake",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 70
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clipboard",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "Stats",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 72
+        }
+      },
+      {
+        "comment": "",
+        "key": "Monitor",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 73
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sweep",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 374
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sweep",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 422
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quick access",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 423
+        }
+      },
+      {
+        "comment": "",
+        "key": "Keep Awake",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 424
+        }
+      },
+      {
+        "comment": "",
+        "key": "System",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 425
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clipboard",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 426
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quick access",
+        "location": {
+          "startingColumn": 76,
+          "startingLine": 454
+        }
+      },
+      {
+        "comment": "",
+        "key": "Keep Awake",
+        "location": {
+          "startingColumn": 66,
+          "startingLine": 456
+        }
+      },
+      {
+        "comment": "",
+        "key": "System",
+        "location": {
+          "startingColumn": 78,
+          "startingLine": 458
+        }
+      },
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 75,
+          "startingLine": 466
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clipboard",
+        "location": {
+          "startingColumn": 77,
+          "startingLine": 468
+        }
+      },
+      {
+        "comment": "",
+        "key": "Monitor",
+        "location": {
+          "startingColumn": 78,
+          "startingLine": 470
+        }
+      },
+      {
+        "comment": "",
+        "key": "Keep Awake",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 565
+        }
+      },
+      {
+        "comment": "",
+        "key": "Stop your Mac from going to sleep, for a while or indefinitely. No permissions needed.",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 566
+        }
+      },
+      {
+        "comment": "",
+        "key": "System Glance",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 575
+        }
+      },
+      {
+        "comment": "",
+        "key": "Live CPU, memory and disk readings. The sampler only runs while this hub is open.",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 576
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clipboard History",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 585
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remembers what you copy — text and images — and pastes any of it back, anywhere.",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 586
+        }
+      },
+      {
+        "comment": "",
+        "key": "Island Settings…",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 522
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open Monitor…",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 523
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quit Sweep",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 525
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hide or restore desktop icons",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 615
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hide or restore running apps",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 621
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sweep",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 739
+        }
+      },
+      {
+        "comment": "",
+        "key": "Swept",
+        "location": {
+          "startingColumn": 62,
+          "startingLine": 743
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ready",
+        "location": {
+          "startingColumn": 91,
+          "startingLine": 743
+        }
+      },
+      {
+        "comment": "",
+        "key": "Desktop",
+        "location": {
+          "startingColumn": 81,
+          "startingLine": 785
+        }
+      },
+      {
+        "comment": "",
+        "key": "Apps",
+        "location": {
+          "startingColumn": 77,
+          "startingLine": 786
+        }
+      },
+      {
+        "comment": "",
+        "key": "No sweep features on",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 787
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore everything…",
+        "location": {
+          "startingColumn": 66,
+          "startingLine": 769
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sweep everything…",
+        "location": {
+          "startingColumn": 66,
+          "startingLine": 770
+        }
+      },
+      {
+        "comment": "",
+        "key": "System",
+        "location": {
+          "startingColumn": 80,
+          "startingLine": 813
+        }
+      },
+      {
+        "comment": "",
+        "key": "CPU",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 821
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ memory · %@ free",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 856
+        }
+      },
+      {
+        "comment": "",
+        "key": "Turn on System Glance…",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 835
+        }
+      },
+      {
+        "comment": "",
+        "key": "All quiet — nothing running.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 911
+        }
+      },
+      {
+        "comment": "",
+        "key": "Now",
+        "location": {
+          "startingColumn": 80,
+          "startingLine": 903
+        }
+      },
+      {
+        "comment": "",
+        "key": "Keeping your Mac awake",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 929
+        }
+      },
+      {
+        "comment": "",
+        "key": "Stop",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 931
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reopening your apps",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 936
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 938
+        }
+      },
+      {
+        "comment": "",
+        "key": "Desktop icons hidden",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 943
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 945
+        }
+      },
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 69,
+          "startingLine": 1070
+        }
+      },
+      {
+        "comment": "",
+        "key": "Timed",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 1127
+        }
+      },
+      {
+        "comment": "",
+        "key": "Indefinite",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 1133
+        }
+      },
+      {
+        "comment": "",
+        "key": "Stop",
+        "location": {
+          "startingColumn": 69,
+          "startingLine": 1141
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start",
+        "location": {
+          "startingColumn": 97,
+          "startingLine": 1141
+        }
+      },
+      {
+        "comment": "",
+        "key": "Display can sleep",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 1170
+        }
+      },
+      {
+        "comment": "",
+        "key": "Stop below %lld%% battery",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 1173
+        }
+      },
+      {
+        "comment": "",
+        "key": "CPU",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 1342
+        }
+      },
+      {
+        "comment": "",
+        "key": "Memory",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 1345
+        }
+      },
+      {
+        "comment": "",
+        "key": "Disk free",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 1347
+        }
+      },
+      {
+        "comment": "",
+        "key": "Measuring…",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 1344
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ of %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1359
+        }
+      },
+      {
+        "comment": "",
+        "key": "Measuring…",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1356
+        }
+      },
+      {
+        "comment": "",
+        "key": "Measuring…",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 1349
+        }
+      },
+      {
+        "comment": "",
+        "key": "Busiest right now",
+        "location": {
+          "startingColumn": 64,
+          "startingLine": 1383
+        }
+      },
+      {
+        "comment": "",
+        "key": "Measuring…",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1385
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open Monitor",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1422
+        }
+      },
+      {
+        "comment": "",
+        "key": "1 clipping",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 1503
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld clippings",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 1504
+        }
+      },
+      {
+        "comment": "",
+        "key": "Bezel %@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1509
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open bezel",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1511
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1475
+        }
+      },
+      {
+        "comment": "",
+        "key": "Nothing copied yet",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1524
+        }
+      },
+      {
+        "comment": "",
+        "key": "Everything you copy appears here.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1527
+        }
+      },
+      {
+        "comment": "",
+        "key": "Off",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1614
+        }
+      },
+      {
+        "comment": "",
+        "key": "Turn on",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1622
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open Settings…",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1635
+        }
+      },
+      {
+        "comment": "",
+        "key": "Dynamic Island",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1664
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sweep's controls in a notch-hugging island at the top of your screen. Hover it to expand. Changes apply live.",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 1665
+        }
+      },
+      {
+        "comment": "",
+        "key": "Show the Dynamic Island",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 1670
+        }
+      },
+      {
+        "comment": "",
+        "key": "A slim pill with live status; hover to open the controls hub.",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 1671
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hide the menu bar icon",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 1678
+        }
+      },
+      {
+        "comment": "",
+        "key": "Island only — Settings and Quit stay reachable from the island.",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 1679
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1672
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1680
+        }
+      },
+      {
+        "comment": "",
+        "key": "Layout",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1687
+        }
+      },
+      {
+        "comment": "",
+        "key": "Show outline",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 1726
+        }
+      },
+      {
+        "comment": "",
+        "key": "A subtle border so the island stands out on dark wallpapers.",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 1727
+        }
+      },
+      {
+        "comment": "",
+        "key": "The hub's panel size. Pages scroll when their content is longer.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1713
+        }
+      },
+      {
+        "comment": "",
+        "key": "How roomy the expanded island is.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1717
+        }
+      },
+      {
+        "comment": "",
+        "key": "Width",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1696
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1699
+        }
+      },
+      {
+        "comment": "",
+        "key": "Maximum height",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1705
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1708
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 1728
+        }
+      },
+      {
+        "comment": "",
+        "key": "Content",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1735
+        }
+      },
+      {
+        "comment": "",
+        "key": "These control the Quick access grid. The satellite buttons and home cards follow the features you have enabled.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1749
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hide or restore desktop icons.",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 1764
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hide or restore running apps.",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 1765
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open the Keep Awake timer page.",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 1766
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open the clipboard page.",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 1767
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open the System stats page.",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 1768
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open the Monitor window.",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 1769
+        }
+      },
+      {
+        "comment": "",
+        "key": "(Enable the feature first.)",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 1772
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 1743
+        }
+      }
+    ]
+  },
+  "version": 1
+}

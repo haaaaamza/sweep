@@ -1,0 +1,104 @@
+{
+  "source": "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/SystemGlance/SystemGlanceModule.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "System Glance"
+      },
+      {
+        "comment": "",
+        "key": "Live CPU, memory and disk readout — no history, no alerts."
+      },
+      {
+        "comment": "",
+        "key": "CPU %.0f%%",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 231
+        }
+      },
+      {
+        "comment": "",
+        "key": "Measuring…",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 219
+        }
+      },
+      {
+        "comment": "",
+        "key": "CPU",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 196
+        }
+      },
+      {
+        "comment": "",
+        "key": "Memory",
+        "location": {
+          "startingColumn": 70,
+          "startingLine": 202
+        }
+      },
+      {
+        "comment": "",
+        "key": "Disk free",
+        "location": {
+          "startingColumn": 73,
+          "startingLine": 211
+        }
+      },
+      {
+        "comment": "",
+        "key": "Menu bar",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 254
+        }
+      },
+      {
+        "comment": "",
+        "key": "Show CPU % next to the menu bar icon",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 258
+        }
+      },
+      {
+        "comment": "",
+        "key": "Updates every 2 seconds while enabled. Off by default.",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 259
+        }
+      },
+      {
+        "comment": "",
+        "key": "Zero cost when closed",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 266
+        }
+      },
+      {
+        "comment": "",
+        "key": "The panel readout refreshes only while the panel is open. No history, no alerts.",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 267
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 260
+        }
+      }
+    ]
+  },
+  "version": 1
+}

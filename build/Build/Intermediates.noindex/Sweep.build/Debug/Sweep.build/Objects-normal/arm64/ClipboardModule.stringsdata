@@ -1,0 +1,264 @@
+{
+  "source": "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/Clipboard/ClipboardModule.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Image · %lld×%lld",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 72
+        }
+      },
+      {
+        "comment": "",
+        "key": "Image",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clipboard History",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remember what you copy — text and images — and paste any of it back, anywhere.",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 101
+        }
+      },
+      {
+        "comment": "",
+        "key": "Nothing copied yet. Copy some text or an image and it shows up here.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 399
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld remembered",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 410
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 414
+        }
+      },
+      {
+        "comment": "",
+        "key": "History",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 469
+        }
+      },
+      {
+        "comment": "",
+        "key": "How many clippings — text and images — are remembered. The oldest fall off the end.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 476
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld remembered right now",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 480
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear History",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 484
+        }
+      },
+      {
+        "comment": "",
+        "key": "Bezel design",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 494
+        }
+      },
+      {
+        "comment": "",
+        "key": "Preview",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 508
+        }
+      },
+      {
+        "comment": "",
+        "key": "Shows the real bezel with your clippings. Esc closes it.",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 513
+        }
+      },
+      {
+        "comment": "",
+        "key": "Shortcut",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 521
+        }
+      },
+      {
+        "comment": "",
+        "key": "Show the clipboard bezel",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 525
+        }
+      },
+      {
+        "comment": "",
+        "key": "Press it again (or ← →) to go back and forth through your clippings. Let go of the modifier keys to choose one, then ⌘V pastes it. Esc cancels.",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 526
+        }
+      },
+      {
+        "comment": "",
+        "key": "Another app owns this shortcut",
+        "location": {
+          "startingColumn": 62,
+          "startingLine": 533
+        }
+      },
+      {
+        "comment": "",
+        "key": "The combo couldn't be registered — an app like Flycut is probably already using it. Quit that app and try again, or record a different combo.",
+        "location": {
+          "startingColumn": 64,
+          "startingLine": 534
+        }
+      },
+      {
+        "comment": "",
+        "key": "Try Again",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 535
+        }
+      },
+      {
+        "comment": "",
+        "key": "Options",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 545
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remember history across launches",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 549
+        }
+      },
+      {
+        "comment": "",
+        "key": "Saved locally in Application Support. Turning this off deletes the saved files.",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 550
+        }
+      },
+      {
+        "comment": "",
+        "key": "Paste immediately after picking",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 557
+        }
+      },
+      {
+        "comment": "",
+        "key": "Simulates ⌘V for you after choosing a clipping. Needs the Accessibility permission.",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 558
+        }
+      },
+      {
+        "comment": "",
+        "key": "Accessibility permission needed",
+        "location": {
+          "startingColumn": 62,
+          "startingLine": 566
+        }
+      },
+      {
+        "comment": "",
+        "key": "Until it is granted, picking a clipping only copies it.",
+        "location": {
+          "startingColumn": 64,
+          "startingLine": 567
+        }
+      },
+      {
+        "comment": "",
+        "key": "Passwords are never recorded",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 577
+        }
+      },
+      {
+        "comment": "",
+        "key": "Content that password managers mark as concealed or transient is always skipped.",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 578
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 551
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 559
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open System Settings",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 568
+        }
+      }
+    ]
+  },
+  "version": 1
+}

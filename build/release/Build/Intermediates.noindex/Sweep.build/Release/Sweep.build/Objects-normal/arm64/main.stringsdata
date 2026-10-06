@@ -1,0 +1,104 @@
+{
+  "source": "/Users/hassan/Desktop/Mac App/Sweep/Sweep/main.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "App Sweep",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 9
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hide every running app in one click, bring them all back with the next.",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 9
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clipboard History",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 9
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remember what you copy — text and images — and paste any of it back, anywhere.",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 9
+        }
+      },
+      {
+        "comment": "",
+        "key": "Desktop Sweep",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 9
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hide every icon on the desktop with one click. Files never move.",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 9
+        }
+      },
+      {
+        "comment": "",
+        "key": "Keep Awake",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 9
+        }
+      },
+      {
+        "comment": "",
+        "key": "Stop your Mac from going to sleep, for a while or indefinitely.",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 9
+        }
+      },
+      {
+        "comment": "",
+        "key": "System Glance",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 9
+        }
+      },
+      {
+        "comment": "",
+        "key": "Live CPU, memory and disk readout — no history, no alerts.",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 9
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sweep",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 9
+        }
+      },
+      {
+        "comment": "",
+        "key": "Utilities",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 9
+        }
+      }
+    ]
+  },
+  "version": 1
+}

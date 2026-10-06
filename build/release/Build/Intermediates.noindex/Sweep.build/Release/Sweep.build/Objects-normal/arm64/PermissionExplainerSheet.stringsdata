@@ -1,0 +1,40 @@
+{
+  "source": "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/PermissionExplainerSheet.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "%@ needs your permission",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 16
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open System Settings…",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 38
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable Feature",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 39
+        }
+      }
+    ]
+  },
+  "version": 1
+}

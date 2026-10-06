@@ -1,0 +1,249 @@
+{
+  "" : {
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/Sweep-primary.dia",
+    "emit-module-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/Sweep-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/Sweep-primary-emit-module.dia",
+    "pch" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/Sweep-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/Sweep-primary.swiftdeps"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/AppDelegate.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppDelegate.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppDelegate.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppDelegate.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppDelegate.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppDelegate.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppDelegate.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppDelegate.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppDelegate~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Core/FeatureModule.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureModule.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureModule.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureModule.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureModule.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureModule.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureModule.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureModule.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureModule~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Core/FeatureRegistry.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureRegistry.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureRegistry.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureRegistry.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureRegistry.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureRegistry.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureRegistry.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureRegistry.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureRegistry~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Core/HotkeyManager.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/HotkeyManager.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/HotkeyManager.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/HotkeyManager.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/HotkeyManager.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/HotkeyManager.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/HotkeyManager.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/HotkeyManager.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/HotkeyManager~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Core/LaunchAtLogin.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/LaunchAtLogin.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/LaunchAtLogin.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/LaunchAtLogin.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/LaunchAtLogin.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/LaunchAtLogin.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/LaunchAtLogin.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/LaunchAtLogin.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/LaunchAtLogin~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/AppSweep/AppSweepModule.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppSweepModule.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppSweepModule.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppSweepModule.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppSweepModule.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppSweepModule.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppSweepModule.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppSweepModule.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/AppSweepModule~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/Clipboard/ClipboardBezel.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardBezel.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardBezel.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardBezel.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardBezel.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardBezel.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardBezel.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardBezel.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardBezel~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/Clipboard/ClipboardModule.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardModule.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardModule.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardModule.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardModule.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardModule.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardModule.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardModule.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ClipboardModule~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/DesktopSweep/DesktopSweepModule.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DesktopSweepModule.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DesktopSweepModule.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DesktopSweepModule.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DesktopSweepModule.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DesktopSweepModule.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DesktopSweepModule.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DesktopSweepModule.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DesktopSweepModule~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/KeepAwake/KeepAwakeModule.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/KeepAwakeModule.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/KeepAwakeModule.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/KeepAwakeModule.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/KeepAwakeModule.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/KeepAwakeModule.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/KeepAwakeModule.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/KeepAwakeModule.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/KeepAwakeModule~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/SweepCoordinator.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SweepCoordinator.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SweepCoordinator.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SweepCoordinator.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SweepCoordinator.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SweepCoordinator.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SweepCoordinator.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SweepCoordinator.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SweepCoordinator~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/SystemGlance/ProcessMonitor.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ProcessMonitor.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ProcessMonitor.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ProcessMonitor.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ProcessMonitor.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ProcessMonitor.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ProcessMonitor.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ProcessMonitor.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ProcessMonitor~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/SystemGlance/SystemGlanceModule.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemGlanceModule.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemGlanceModule.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemGlanceModule.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemGlanceModule.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemGlanceModule.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemGlanceModule.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemGlanceModule.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemGlanceModule~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/SystemGlance/SystemStats.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemStats.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemStats.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemStats.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemStats.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemStats.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemStats.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemStats.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SystemStats~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/DynamicIsland.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DynamicIsland.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DynamicIsland.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DynamicIsland.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DynamicIsland.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DynamicIsland.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DynamicIsland.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DynamicIsland.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/DynamicIsland~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/FeatureCard.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureCard.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureCard.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureCard.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureCard.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureCard.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureCard.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureCard.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/FeatureCard~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/MonitorView.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/MonitorView.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/MonitorView.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/MonitorView.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/MonitorView.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/MonitorView.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/MonitorView.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/MonitorView.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/MonitorView~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/OnboardingView.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/OnboardingView.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/OnboardingView.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/OnboardingView.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/OnboardingView.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/OnboardingView.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/OnboardingView.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/OnboardingView.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/OnboardingView~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/PanelView.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PanelView.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PanelView.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PanelView.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PanelView.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PanelView.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PanelView.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PanelView.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PanelView~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/PermissionExplainerSheet.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PermissionExplainerSheet.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PermissionExplainerSheet.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PermissionExplainerSheet.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PermissionExplainerSheet.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PermissionExplainerSheet.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PermissionExplainerSheet.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PermissionExplainerSheet.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/PermissionExplainerSheet~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/SettingsView.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SettingsView.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SettingsView.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SettingsView.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SettingsView.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SettingsView.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SettingsView.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SettingsView.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/SettingsView~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/ShortcutRecorderView.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ShortcutRecorderView.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ShortcutRecorderView.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ShortcutRecorderView.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ShortcutRecorderView.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ShortcutRecorderView.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ShortcutRecorderView.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ShortcutRecorderView.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/ShortcutRecorderView~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/main.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/main.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/main.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/main.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/main.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/main.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/main.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/main.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/main~partial.swiftmodule"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/hassan/Desktop/Mac App/Sweep/build/Build/Intermediates.noindex/Sweep.build/Debug/Sweep.build/Objects-normal/arm64/GeneratedAssetSymbols~partial.swiftmodule"
+  }
+}

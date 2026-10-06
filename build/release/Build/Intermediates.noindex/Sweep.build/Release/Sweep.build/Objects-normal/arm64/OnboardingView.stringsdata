@@ -1,0 +1,104 @@
+{
+  "source": "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/OnboardingView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 66,
+          "startingLine": 40
+        }
+      },
+      {
+        "comment": "",
+        "key": "Continue",
+        "location": {
+          "startingColumn": 94,
+          "startingLine": 40
+        }
+      },
+      {
+        "comment": "",
+        "key": "Back",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 29
+        }
+      },
+      {
+        "comment": "",
+        "key": "Welcome to Sweep",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 61
+        }
+      },
+      {
+        "comment": "",
+        "key": "One click hides your messy desktop — every file icon and every open app disappear. A second click brings everything back exactly as it was.\n\nSweep lives in your menu bar, and everything runs locally: no network, no accounts, no analytics.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable your first feature",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "Everything in Sweep is off until you turn it on. Start with the signature pair:",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 76
+        }
+      },
+      {
+        "comment": "",
+        "key": "More utilities (Keep Awake, System Glance) live in Settings → Features.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "Set your Sweep shortcut",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 114
+        }
+      },
+      {
+        "comment": "",
+        "key": "One press sweeps everything away, a second press restores it — from anywhere, no clicking required.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 116
+        }
+      },
+      {
+        "comment": "",
+        "key": "You can change this later in Settings → General.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 121
+        }
+      },
+      {
+        "comment": "",
+        "key": "Welcome to Sweep",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 136
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>logFormatVersion</key>
+	<integer>13</integer>
+	<key>logs</key>
+	<dict>
+		<key>B96CFC15-B346-4747-9650-1FB7DA820836</key>
+		<dict>
+			<key>className</key>
+			<string>IDECommandLineBuildLog</string>
+			<key>documentTypeString</key>
+			<string>&lt;nil&gt;</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
+			<key>fileName</key>
+			<string>B96CFC15-B346-4747-9650-1FB7DA820836.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+				<key>totalNumberOfAnalyzerIssues</key>
+				<integer>0</integer>
+				<key>totalNumberOfErrors</key>
+				<integer>0</integer>
+				<key>totalNumberOfTestFailures</key>
+				<integer>0</integer>
+				<key>totalNumberOfWarnings</key>
+				<integer>0</integer>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>Sweep project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>Sweep</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Building project Sweep with scheme Sweep and configuration Debug</string>
+			<key>timeStartedRecording</key>
+			<real>812964266.21537697</real>
+			<key>timeStoppedRecording</key>
+			<real>812964273.17368805</real>
+			<key>title</key>
+			<string>Building project Sweep with scheme Sweep and configuration Debug</string>
+			<key>uniqueIdentifier</key>
+			<string>B96CFC15-B346-4747-9650-1FB7DA820836</string>
+		</dict>
+		<key>E88B2FAB-F5BF-409C-8EE0-BCA8A3D65EFB</key>
+		<dict>
+			<key>className</key>
+			<string>IDECommandLineBuildLog</string>
+			<key>documentTypeString</key>
+			<string>&lt;nil&gt;</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
+			<key>fileName</key>
+			<string>E88B2FAB-F5BF-409C-8EE0-BCA8A3D65EFB.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+				<key>totalNumberOfAnalyzerIssues</key>
+				<integer>0</integer>
+				<key>totalNumberOfErrors</key>
+				<integer>0</integer>
+				<key>totalNumberOfTestFailures</key>
+				<integer>0</integer>
+				<key>totalNumberOfWarnings</key>
+				<integer>0</integer>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>Sweep project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>Sweep</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Building project Sweep with scheme Sweep and configuration Debug</string>
+			<key>timeStartedRecording</key>
+			<real>812899897.91263497</real>
+			<key>timeStoppedRecording</key>
+			<real>812899899.99663794</real>
+			<key>title</key>
+			<string>Building project Sweep with scheme Sweep and configuration Debug</string>
+			<key>uniqueIdentifier</key>
+			<string>E88B2FAB-F5BF-409C-8EE0-BCA8A3D65EFB</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

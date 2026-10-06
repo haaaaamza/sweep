@@ -1,0 +1,116 @@
+{
+  "" : {
+    "const-values" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/Sweep-primary.swiftconstvalues",
+    "dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/Sweep-primary.d",
+    "diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/Sweep-primary.dia",
+    "emit-module-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/Sweep-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/Sweep-primary-emit-module.dia",
+    "pch" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/Sweep-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/Sweep-primary.swiftdeps"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/AppDelegate.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/AppDelegate.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/AppDelegate.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/AppDelegate.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Core/FeatureModule.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/FeatureModule.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/FeatureModule.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/FeatureModule.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Core/FeatureRegistry.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/FeatureRegistry.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/FeatureRegistry.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/FeatureRegistry.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Core/HotkeyManager.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/HotkeyManager.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/HotkeyManager.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/HotkeyManager.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Core/LaunchAtLogin.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/LaunchAtLogin.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/LaunchAtLogin.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/LaunchAtLogin.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/AppSweep/AppSweepModule.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/AppSweepModule.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/AppSweepModule.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/AppSweepModule.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/DesktopSweep/DesktopSweepModule.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/DesktopSweepModule.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/DesktopSweepModule.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/DesktopSweepModule.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/KeepAwake/KeepAwakeModule.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/KeepAwakeModule.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/KeepAwakeModule.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/KeepAwakeModule.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/SweepCoordinator.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/SweepCoordinator.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/SweepCoordinator.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/SweepCoordinator.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/SystemGlance/ProcessMonitor.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/ProcessMonitor.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/ProcessMonitor.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/ProcessMonitor.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/SystemGlance/SystemGlanceModule.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/SystemGlanceModule.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/SystemGlanceModule.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/SystemGlanceModule.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/SystemGlance/SystemStats.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/SystemStats.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/SystemStats.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/SystemStats.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/FeatureCard.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/FeatureCard.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/FeatureCard.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/FeatureCard.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/MonitorView.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/MonitorView.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/MonitorView.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/MonitorView.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/OnboardingView.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/OnboardingView.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/OnboardingView.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/OnboardingView.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/PanelView.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/PanelView.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/PanelView.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/PanelView.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/PermissionExplainerSheet.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/PermissionExplainerSheet.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/PermissionExplainerSheet.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/PermissionExplainerSheet.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/SettingsView.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/SettingsView.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/SettingsView.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/SettingsView.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/ShortcutRecorderView.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/ShortcutRecorderView.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/ShortcutRecorderView.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/ShortcutRecorderView.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/Sweep/main.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/main.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/main.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/main.o"
+  },
+  "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "index-unit-output-path" : "/Sweep.build/Release/Sweep.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/hassan/Desktop/Mac App/Sweep/build/release/Build/Intermediates.noindex/Sweep.build/Release/Sweep.build/Objects-normal/arm64/GeneratedAssetSymbols.o"
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "source": "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/DesktopSweep/DesktopSweepModule.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Desktop Sweep"
+      },
+      {
+        "comment": "",
+        "key": "Hide every icon on the desktop with one click. Files never move."
+      },
+      {
+        "comment": "",
+        "key": "Status",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "Desktop icons are hidden",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 70
+        }
+      },
+      {
+        "comment": "",
+        "key": "Desktop icons are visible",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "Files never move — hiding only changes what Finder draws. Zero data risk.",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 72
+        }
+      },
+      {
+        "comment": "",
+        "key": "Crash safe",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 82
+        }
+      },
+      {
+        "comment": "",
+        "key": "If Sweep closes while the desktop is hidden, the next launch offers to restore it.",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore Now",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 73
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hide Now",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hidden",
+        "location": {
+          "startingColumn": 64,
+          "startingLine": 150
+        }
+      },
+      {
+        "comment": "",
+        "key": "Desktop icons are hidden. Your files are untouched.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 162
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore Desktop Icons",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 152
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hide Desktop Icons",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 153
+        }
+      }
+    ]
+  },
+  "version": 1
+}

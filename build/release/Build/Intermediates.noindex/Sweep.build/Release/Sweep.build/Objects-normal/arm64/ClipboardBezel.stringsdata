@@ -1,0 +1,352 @@
+{
+  "source": "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/Clipboard/ClipboardBezel.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Refined HUD",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 23
+        }
+      },
+      {
+        "comment": "",
+        "key": "Flycut Classic",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 24
+        }
+      },
+      {
+        "comment": "",
+        "key": "Card Deck",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 25
+        }
+      },
+      {
+        "comment": "",
+        "key": "Filmstrip",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "List + Preview",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "Bottom Bar",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 28
+        }
+      },
+      {
+        "comment": "",
+        "key": "Compact Pill",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 29
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sidebar",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "Grid Picker",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 31
+        }
+      },
+      {
+        "comment": "",
+        "key": "Header, kind badge, thumbnail strip and key hints — the balanced default.",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 38
+        }
+      },
+      {
+        "comment": "",
+        "key": "Radically minimal, faithful to the original Flycut: source, the clipping, a counter.",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 40
+        }
+      },
+      {
+        "comment": "",
+        "key": "The previous and next clippings peek from the sides, cover-flow style.",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Big thumbnails are the interface; a slim preview sits above them.",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "A vertical list with a preview pane — best for long histories and long text.",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 46
+        }
+      },
+      {
+        "comment": "",
+        "key": "A wide shelf of cards that slides up from the bottom of the screen.",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 48
+        }
+      },
+      {
+        "comment": "",
+        "key": "A one-line capsule near the top of the screen, like a volume HUD.",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "The clipping front and center; app, time and size in a quiet right rail.",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 52
+        }
+      },
+      {
+        "comment": "",
+        "key": "A 3×3 board of the last 9 clippings — press 1–9 to pick instantly.",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "Nothing copied yet",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 337
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ or ← → to cycle · release to choose · ⎋ cancel",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 359
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clipboard",
+        "location": {
+          "startingColumn": 62,
+          "startingLine": 379
+        }
+      },
+      {
+        "comment": "",
+        "key": "·",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 383
+        }
+      },
+      {
+        "comment": "",
+        "key": "Image",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 408
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld characters",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 412
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld of %lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 525
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld of %lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 608
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clipboard",
+        "location": {
+          "startingColumn": 66,
+          "startingLine": 584
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clipboard",
+        "location": {
+          "startingColumn": 62,
+          "startingLine": 664
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld of %lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 722
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clipboard",
+        "location": {
+          "startingColumn": 66,
+          "startingLine": 715
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 770
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clipboard",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 829
+        }
+      },
+      {
+        "comment": "",
+        "key": "Copied",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 948
+        }
+      },
+      {
+        "comment": "",
+        "key": "Kind",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 950
+        }
+      },
+      {
+        "comment": "",
+        "key": "Image",
+        "location": {
+          "startingColumn": 69,
+          "startingLine": 951
+        }
+      },
+      {
+        "comment": "",
+        "key": "Plain text",
+        "location": {
+          "startingColumn": 98,
+          "startingLine": 951
+        }
+      },
+      {
+        "comment": "",
+        "key": "Size",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 952
+        }
+      },
+      {
+        "comment": "",
+        "key": "Position",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 953
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clipboard",
+        "location": {
+          "startingColumn": 66,
+          "startingLine": 945
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld characters",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 970
+        }
+      },
+      {
+        "comment": "",
+        "key": "Press 1–9 to pick instantly · arrows + release also work",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1008
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld remembered",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1012
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1037
+        }
+      }
+    ]
+  },
+  "version": 1
+}

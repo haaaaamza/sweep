@@ -1,0 +1,200 @@
+{
+  "source": "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Features/KeepAwake/KeepAwakeModule.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Keep Awake",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 12
+        }
+      },
+      {
+        "comment": "",
+        "key": "Stop your Mac from going to sleep, for a while or indefinitely.",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 13
+        }
+      },
+      {
+        "comment": "",
+        "key": "Indefinite",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "15 minutes",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 28
+        }
+      },
+      {
+        "comment": "",
+        "key": "30 minutes",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 29
+        }
+      },
+      {
+        "comment": "",
+        "key": "1 hour",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "2 hours",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 31
+        }
+      },
+      {
+        "comment": "",
+        "key": "Awake",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 242
+        }
+      },
+      {
+        "comment": "",
+        "key": "Staying awake until you turn this off.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 230
+        }
+      },
+      {
+        "comment": "",
+        "key": "Awake for another %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 226
+        }
+      },
+      {
+        "comment": "",
+        "key": "For",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 215
+        }
+      },
+      {
+        "comment": "",
+        "key": "Keep Mac awake",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 210
+        }
+      },
+      {
+        "comment": "",
+        "key": "Default duration",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 272
+        }
+      },
+      {
+        "comment": "",
+        "key": "How long a session runs when you flip the switch in the panel.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 279
+        }
+      },
+      {
+        "comment": "",
+        "key": "Options",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 288
+        }
+      },
+      {
+        "comment": "",
+        "key": "Allow the display to sleep",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 292
+        }
+      },
+      {
+        "comment": "",
+        "key": "Keeps the Mac awake while the display follows its normal sleep timer.",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 293
+        }
+      },
+      {
+        "comment": "",
+        "key": "Stop when battery drops below",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 300
+        }
+      },
+      {
+        "comment": "",
+        "key": "Keeps a forgotten session from draining the battery.",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 301
+        }
+      },
+      {
+        "comment": "",
+        "key": "Session ends when Sweep quits",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 314
+        }
+      },
+      {
+        "comment": "",
+        "key": "The sleep assertion can never outlive the app.",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 315
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 294
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 307
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 304
+        }
+      }
+    ]
+  },
+  "version": 1
+}

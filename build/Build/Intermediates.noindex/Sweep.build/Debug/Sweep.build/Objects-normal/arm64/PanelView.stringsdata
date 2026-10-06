@@ -1,0 +1,80 @@
+{
+  "source": "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/PanelView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Sweep",
+        "location": {
+          "startingColumn": 68,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quit Sweep",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 144
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open Monitor",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 122
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore Everything",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 156
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sweep All",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 157
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sweep",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 172
+        }
+      },
+      {
+        "comment": "",
+        "key": "No features enabled yet.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 174
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable Features…",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 178
+        }
+      }
+    ]
+  },
+  "version": 1
+}

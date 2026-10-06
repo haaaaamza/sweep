@@ -1,0 +1,168 @@
+{
+  "source": "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/MonitorView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Overview",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 13
+        }
+      },
+      {
+        "comment": "",
+        "key": "CPU",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 14
+        }
+      },
+      {
+        "comment": "",
+        "key": "Memory",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 15
+        }
+      },
+      {
+        "comment": "",
+        "key": "Apps",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 16
+        }
+      },
+      {
+        "comment": "",
+        "key": "CPU",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 95
+        }
+      },
+      {
+        "comment": "",
+        "key": "Memory",
+        "location": {
+          "startingColumn": 70,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "Disk free",
+        "location": {
+          "startingColumn": 73,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "Busiest right now",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 116
+        }
+      },
+      {
+        "comment": "",
+        "key": "Measuring…",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 120
+        }
+      },
+      {
+        "comment": "",
+        "key": "Every app gets one row — its helper processes are folded in.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 174
+        }
+      },
+      {
+        "comment": "",
+        "key": "Processor, by app",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 151
+        }
+      },
+      {
+        "comment": "",
+        "key": "Memory, by app",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 152
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld apps · helpers included",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 155
+        }
+      },
+      {
+        "comment": "",
+        "key": "Measuring…",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 162
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld process%@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 209
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld ",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 253
+        }
+      },
+      {
+        "comment": "",
+        "key": "apps",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 254
+        }
+      },
+      {
+        "comment": "",
+        "key": "What Sweep sees right now — every helper counted with its app.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 256
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 300
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sweep Monitor",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 335
+        }
+      }
+    ]
+  },
+  "version": 1
+}

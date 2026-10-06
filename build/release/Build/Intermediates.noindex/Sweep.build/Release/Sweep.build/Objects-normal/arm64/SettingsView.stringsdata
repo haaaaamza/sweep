@@ -1,0 +1,296 @@
+{
+  "source": "/Users/hassan/Desktop/Mac App/Sweep/Sweep/Views/SettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 191
+        }
+      },
+      {
+        "comment": "",
+        "key": "General",
+        "location": {
+          "startingColumn": 66,
+          "startingLine": 240
+        }
+      },
+      {
+        "comment": "",
+        "key": "Features",
+        "location": {
+          "startingColumn": 67,
+          "startingLine": 241
+        }
+      },
+      {
+        "comment": "",
+        "key": "Dynamic Island",
+        "location": {
+          "startingColumn": 65,
+          "startingLine": 242
+        }
+      },
+      {
+        "comment": "",
+        "key": "About",
+        "location": {
+          "startingColumn": 61,
+          "startingLine": 253
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search settings",
+        "location": {
+          "startingColumn": 73,
+          "startingLine": 275
+        }
+      },
+      {
+        "comment": "",
+        "key": "Essentials",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 259
+        }
+      },
+      {
+        "comment": "",
+        "key": "Features",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 264
+        }
+      },
+      {
+        "comment": "",
+        "key": "App",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 269
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sweep",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 381
+        }
+      },
+      {
+        "comment": "",
+        "key": "Utilities",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 383
+        }
+      },
+      {
+        "comment": "",
+        "key": "General",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 316
+        }
+      },
+      {
+        "comment": "",
+        "key": "Launch at login",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 319
+        }
+      },
+      {
+        "comment": "",
+        "key": "Opens by itself every time you turn on your Mac.",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 320
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 321
+        }
+      },
+      {
+        "comment": "",
+        "key": "Global shortcut",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 346
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sweep All shortcut",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 349
+        }
+      },
+      {
+        "comment": "",
+        "key": "One press sweeps, a second press restores. Works in any app, no extra permissions.",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 350
+        }
+      },
+      {
+        "comment": "",
+        "key": "Appearance",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 357
+        }
+      },
+      {
+        "comment": "",
+        "key": "Follows the system",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 360
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sweep's panel and windows match your Mac's light or dark appearance.",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 361
+        }
+      },
+      {
+        "comment": "",
+        "key": "Features",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 388
+        }
+      },
+      {
+        "comment": "",
+        "key": "Everything is off until you turn it on. A feature that is off loads nothing at all.",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 389
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld of %lld features enabled",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 394
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable all",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 397
+        }
+      },
+      {
+        "comment": "",
+        "key": "Disable all",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 401
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld/%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 426
+        }
+      },
+      {
+        "comment": "",
+        "key": "⚠ May be missing a permission — open its options.",
+        "location": {
+          "startingColumn": 61,
+          "startingLine": 465
+        }
+      },
+      {
+        "comment": "",
+        "key": "Options",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 442
+        }
+      },
+      {
+        "comment": "",
+        "key": "On — shown in the menu bar panel.",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 484
+        }
+      },
+      {
+        "comment": "",
+        "key": "Off — loads nothing at all.",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 485
+        }
+      },
+      {
+        "comment": "",
+        "key": "About",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 507
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sweep",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 513
+        }
+      },
+      {
+        "comment": "",
+        "key": "Version %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 514
+        }
+      },
+      {
+        "comment": "",
+        "key": "A small collection of everyday utilities.\nEverything runs locally — no network, no analytics, no accounts.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 517
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sweep Settings",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 539
+        }
+      }
+    ]
+  },
+  "version": 1
+}
