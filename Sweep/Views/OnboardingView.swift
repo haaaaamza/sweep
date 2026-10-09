@@ -80,7 +80,7 @@ struct OnboardingView: View {
             onboardingToggle(DesktopSweepModule.shared)
             onboardingToggle(AppSweepModule.shared)
 
-            Text("More utilities (Keep Awake, System Glance) live in Settings → Features.")
+            Text("Clipboard History lives in Settings → Features.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

@@ -235,6 +235,12 @@ final class AppSweepModule: ObservableObject, FeatureModule {
         autoRestoreRemaining = nil
     }
 
+    /// mm:ss countdown for the auto-restore timer.
+    static func formatInterval(_ interval: TimeInterval) -> String {
+        let total = max(0, Int(interval.rounded()))
+        return String(format: "%d:%02d", total / 60, total % 60)
+    }
+
     static func summary(for snapshot: AppSnapshot?) -> String? {
         guard let snapshot, !snapshot.bundleIDs.isEmpty else { return nil }
         let names = snapshot.bundleIDs.compactMap { snapshot.appNames?[$0] }
@@ -426,7 +432,7 @@ struct AppSweepCard: View {
                 }
                 if let remaining = module.autoRestoreRemaining {
                     HStack {
-                        Text("Reopening in \(KeepAwakeCard.format(remaining))")
+                        Text("Reopening in \(AppSweepModule.formatInterval(remaining))")
                             .font(.caption.monospacedDigit())
                             .foregroundStyle(.secondary)
                         Spacer()

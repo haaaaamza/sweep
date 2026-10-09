@@ -42,26 +42,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         SweepCoordinator.shared.refreshState()
         updateStatusIcon(swept: SweepCoordinator.shared.isSwept)
 
-        // Optional "CPU 42%" readout next to the icon (FR-6.2).
-        NotificationCenter.default.addObserver(
-            forName: .sweepMenuBarReadoutChanged, object: nil, queue: .main
-        ) { [weak self] notification in
-            let text = notification.userInfo?["text"] as? String ?? ""
-            self?.statusItem?.button?.title = text.isEmpty ? "" : " \(text)"
-            self?.statusItem?.button?.imagePosition = text.isEmpty ? .imageOnly : .imageLeft
-        }
-
-        // Panel buttons ask for a specific settings tab / the Monitor window.
+        // Panel buttons ask for a specific settings tab.
         NotificationCenter.default.addObserver(
             forName: .sweepOpenSettings, object: nil, queue: .main
         ) { [weak self] notification in
             let raw = notification.userInfo?["section"] as? String ?? ""
             self?.openSettings(section: SettingsSection(rawValue: raw) ?? .general)
-        }
-        NotificationCenter.default.addObserver(
-            forName: .sweepOpenMonitor, object: nil, queue: .main
-        ) { [weak self] _ in
-            self?.openMonitor()
         }
         NotificationCenter.default.addObserver(
             forName: .sweepClosePanel, object: nil, queue: .main
@@ -118,8 +104,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         registry.register(DesktopSweepModule.shared)
         registry.register(AppSweepModule.shared)
         registry.register(ClipboardModule.shared)
-        registry.register(KeepAwakeModule.shared)
-        registry.register(SystemGlanceModule.shared)
     }
 
     /// FR-2.3: if the app quit or crashed while swept, offer to restore.
@@ -219,11 +203,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private func showContextMenu() {
         let menu = NSMenu()
 
-        let monitorItem = NSMenuItem(title: NSLocalizedString("Open Monitor…", comment: ""),
-                                     action: #selector(openMonitorFromMenu), keyEquivalent: "m")
-        monitorItem.target = self
-        menu.addItem(monitorItem)
-
         let featuresItem = NSMenuItem(title: NSLocalizedString("Manage Features…", comment: ""),
                                       action: #selector(openFeatureSettings), keyEquivalent: "")
         featuresItem.target = self
@@ -246,25 +225,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     }
 
     // MARK: - Settings
-
-    // MARK: - Monitor window
-
-    private var monitorWindowController: MonitorWindowController?
-
-    @objc func openMonitorFromMenu() {
-        openMonitor()
-    }
-
-    func openMonitor() {
-        if monitorWindowController == nil {
-            monitorWindowController = MonitorWindowController()
-        }
-        if popover.isShown {
-            popover.performClose(nil)
-        }
-        NSApp.activate(ignoringOtherApps: true)
-        monitorWindowController?.show()
-    }
 
     @objc func openGeneralSettings() {
         openSettings(section: .general)

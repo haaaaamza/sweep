@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import QuartzCore
 
 extension Notification.Name {
     /// Posted when the user changes where Sweep lives (menu bar / island / both).
@@ -54,60 +55,24 @@ enum IslandSize: String, CaseIterable, Identifiable {
 
 /// A quick-action tile the user can show in the island's Quick access grid.
 enum IslandTile: String, CaseIterable, Identifiable {
-    case volumeMixer
-    case nowPlaying
-    case system
-    case calendar
-    case notifications
-    case timer
-    case downloads
-    case aiAgents
-    case keepAwake
     case clipboard
 
     var id: String { rawValue }
 
     var name: String {
         switch self {
-        case .volumeMixer: return String(localized: "Volume mixer")
-        case .nowPlaying: return String(localized: "Now Playing")
-        case .system: return String(localized: "System")
-        case .calendar: return String(localized: "Calendar")
-        case .notifications: return String(localized: "Notifications")
-        case .timer: return String(localized: "Timer")
-        case .downloads: return String(localized: "Downloads")
-        case .aiAgents: return String(localized: "AI Agents")
-        case .keepAwake: return String(localized: "Keep awake")
         case .clipboard: return String(localized: "Clipboard")
         }
     }
 
     var icon: String {
         switch self {
-        case .volumeMixer: return "speaker.wave.2.fill"
-        case .nowPlaying: return "music.note"
-        case .system: return "gauge.with.needle"
-        case .calendar: return "calendar"
-        case .notifications: return "bell.fill"
-        case .timer: return "timer"
-        case .downloads: return "arrow.down.circle"
-        case .aiAgents: return "sparkles"
-        case .keepAwake: return "moon.fill"
         case .clipboard: return "doc.on.clipboard"
         }
     }
 
     var tint: Color {
         switch self {
-        case .volumeMixer: return .white
-        case .nowPlaying: return .pink
-        case .system: return .white
-        case .calendar: return .red
-        case .notifications: return .white
-        case .timer: return .orange
-        case .downloads: return .white
-        case .aiAgents: return .orange
-        case .keepAwake: return .orange
         case .clipboard: return .teal
         }
     }
@@ -115,25 +80,13 @@ enum IslandTile: String, CaseIterable, Identifiable {
     /// The feature that must be enabled for the tile to work (nil = always).
     var requiredFeatureID: String? {
         switch self {
-        case .system: return "system-glance"
-        case .keepAwake: return "keep-awake"
         case .clipboard: return "clipboard"
-        default: return nil
         }
     }
 
     /// The island page this tile opens.
     var page: IslandPage {
         switch self {
-        case .volumeMixer: return .volumeMixer
-        case .nowPlaying: return .nowPlaying
-        case .system: return .system
-        case .calendar: return .calendar
-        case .notifications: return .notifications
-        case .timer: return .timer
-        case .downloads: return .downloads
-        case .aiAgents: return .aiAgents
-        case .keepAwake: return .keepAwake
         case .clipboard: return .clipboard
         }
     }
@@ -193,10 +146,12 @@ final class IslandPrefs: ObservableObject {
         customWidth = defaults.object(forKey: "island.customWidth") as? Double ?? 640
         customMaxHeight = defaults.object(forKey: "island.customMaxHeight") as? Double ?? 340
         showOutline = defaults.object(forKey: "island.outline") as? Bool ?? false
+        let known = Set(IslandTile.allCases.map(\.rawValue))
         if let stored = defaults.stringArray(forKey: "island.tiles") {
-            tiles = Set(stored)
+            tiles = Set(stored).intersection(known)
+            if tiles.isEmpty { tiles = known }
         } else {
-            tiles = Set(IslandTile.allCases.map(\.rawValue))
+            tiles = known
         }
     }
 
@@ -223,21 +178,46 @@ final class IslandPrefs: ObservableObject {
 
 // MARK: - Island window
 
-/// An iPhone-style Dynamic Island hugging the notch (or floating top-center on
-/// Macs without one). Collapsed it's hidden behind the notch; move the mouse
-/// there and it slides out, then expands into Sweep's controls hub.
+/// Opening and closing springs from NotchAnimationDemo (boring.notch's values).
+private enum StandardAnimations {
+    static let enableOpeningAnimation = true
+    static let animationSpeedMultiplier: Double = 1.0
+
+    static let interactive = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
+
+    static var open: Animation {
+        guard enableOpeningAnimation else { return .linear(duration: 0) }
+        return .spring(response: 0.42 / animationSpeedMultiplier, dampingFraction: 0.8, blendDuration: 0)
+    }
+
+    static var close: Animation {
+        guard enableOpeningAnimation else { return .linear(duration: 0) }
+        return .spring(response: 0.45 / animationSpeedMultiplier, dampingFraction: 1.0, blendDuration: 0)
+    }
+}
+
+/// Room under the open notch so its shadow is not cut by the window.
+private let islandShadowPadding: CGFloat = 20
+
+/// Closed and open corner radii, copied from NotchAnimationDemo.
+private let islandCornerRadiusInsets: (
+    opened: (top: CGFloat, bottom: CGFloat),
+    closed: (top: CGFloat, bottom: CGFloat)
+) = (opened: (top: 19, bottom: 24), closed: (top: 6, bottom: 14))
+
 final class DynamicIslandController: ObservableObject {
     static let shared = DynamicIslandController()
 
     @Published var isExpanded = false {
         didSet {
             guard oldValue != isExpanded else { return }
-            // Drives the System Glance sampler exactly like the popover does.
             NotificationCenter.default.post(
                 name: isExpanded ? .sweepPanelDidOpen : .sweepPanelDidClose, object: nil)
-            resizeToFit(animated: true)
         }
     }
+
+    /// Natural size of the whole hub, including the satellite buttons.
+    private(set) var expandedWindowSize: CGSize?
 
     private var panel: NSPanel?
     private var hosting: NSHostingController<IslandRootView>?
@@ -246,7 +226,7 @@ final class DynamicIslandController: ObservableObject {
     func setVisible(_ visible: Bool) {
         if visible {
             if panel == nil { build() }
-            resizeToFit()
+            applyFrame()
             panel?.orderFrontRegardless()
         } else {
             if isExpanded { isExpanded = false }
@@ -255,25 +235,49 @@ final class DynamicIslandController: ObservableObject {
     }
 
     func collapse() {
+        guard isExpanded else { return }
         isExpanded = false
     }
 
+    func containsPointer() -> Bool {
+        guard let panel else { return false }
+        return panel.frame.contains(NSEvent.mouseLocation)
+    }
+
+    func noteHubSize(_ size: CGSize) {
+        guard size.width > 80, size.height > collapsedSize.height + 20 else { return }
+        if let current = expandedWindowSize,
+           abs(current.width - size.width) < 0.5,
+           abs(current.height - size.height) < 0.5 {
+            return
+        }
+        expandedWindowSize = size
+        applyFrame()
+    }
+
     private func build() {
-        let hosting = NSHostingController(rootView: IslandRootView(island: self,
-                                                                   registry: .shared))
+        let hosting = NSHostingController(rootView: IslandRootView(island: self, registry: .shared))
+        hosting.sizingOptions = []
+        hosting.view.translatesAutoresizingMaskIntoConstraints = false
         self.hosting = hosting
 
-        let panel = NSPanel(contentRect: NSRect(origin: .zero, size: collapsedSize),
+        let container = IslandPassThroughView()
+        container.addSubview(hosting.view)
+        NSLayoutConstraint.activate([
+            hosting.view.topAnchor.constraint(equalTo: container.topAnchor),
+            hosting.view.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            hosting.view.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            hosting.view.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+        ])
+
+        let panel = NSPanel(contentRect: NSRect(origin: .zero, size: reservedWindowSize()),
                             styleMask: [.borderless, .nonactivatingPanel],
                             backing: .buffered, defer: false)
-        panel.contentViewController = hosting
+        panel.contentView = container
         panel.isFloatingPanel = true
         panel.level = .statusBar
         panel.backgroundColor = .clear
         panel.isOpaque = false
-        // No window shadow: the panel is transparent, so macOS would draw a hard
-        // silhouette shadow around every opaque shape (each satellite circle),
-        // which reads as an ugly black ring. Depth comes from SwiftUI shadows.
         panel.hasShadow = false
         panel.hidesOnDeactivate = false
         panel.isMovable = false
@@ -282,38 +286,37 @@ final class DynamicIslandController: ObservableObject {
 
         observers.append(NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
-        ) { [weak self] _ in self?.resizeToFit() })
+        ) { [weak self] _ in self?.applyFrame() })
     }
 
-    /// Size the window to exactly fit the current content (pill or hub),
-    /// anchored top-center. An exact fit is what keeps the black shape tight —
-    /// a window larger than its content reads as a floating black box.
-    /// Animated, the frame grows/shrinks from the top edge in sync with the
-    /// SwiftUI content transition, so the hub reads as growing out of the pill.
-    private func resizeToFit(animated: Bool = false) {
-        guard let panel, let hosting else { return }
-        hosting.view.layoutSubtreeIfNeeded()
-        DispatchQueue.main.async { [weak self] in
-            guard let self, let screen = self.targetScreen else { return }
-            let size = self.isExpanded ? hosting.view.fittingSize : self.collapsedSize
-            let topY = self.hasNotch ? screen.frame.maxY : screen.visibleFrame.maxY - 4
-            let frame = NSRect(x: screen.frame.midX - size.width / 2,
-                               y: topY - size.height,
-                               width: size.width, height: size.height)
-            guard panel.frame != frame else { return }
-            if animated {
-                NSAnimationContext.runAnimationGroup { context in
-                    context.duration = 0.44
-                    // A gentle decelerating curve that mirrors the content's
-                    // spring, so the window and the hub arrive together.
-                    context.timingFunction = CAMediaTimingFunction(controlPoints: 0.22, 0.9, 0.24, 1)
-                    context.allowsImplicitAnimation = true
-                    panel.animator().setFrame(frame, display: true)
-                }
-            } else {
-                panel.setFrame(frame, display: true)
-            }
-        }
+    func relayoutIfSettled() {
+        applyFrame()
+    }
+
+    /// The window stays the full open size, like NotchAnimationDemo. The black
+    /// notch springs inside it, so the window edge never cuts the shape.
+    private func applyFrame() {
+        guard let panel, let screen = targetScreen else { return }
+        let size = reservedWindowSize()
+        let topY = screen.frame.maxY
+        let frame = NSRect(x: screen.frame.midX - size.width / 2,
+                           y: topY - size.height,
+                           width: max(size.width, 1),
+                           height: max(size.height, 1))
+        guard panel.frame != frame else { return }
+        panel.setFrame(frame, display: true)
+    }
+
+    /// Open canvas: the hub, the closed strip the demo keeps above it, the
+    /// open padding, and the shadow margin.
+    private func reservedWindowSize() -> CGSize {
+        let hub = expandedWindowSize ?? CGSize(
+            width: IslandPrefs.shared.expandedWidth + 108,
+            height: IslandPrefs.shared.contentHeight + 180)
+        let closed = collapsedSize
+        let side = islandCornerRadiusInsets.opened.top + 12
+        return CGSize(width: max(hub.width, closed.width) + side * 2,
+                      height: hub.height + closed.height + 12 + 8 + islandShadowPadding)
     }
 
     /// Prefer the screen that actually has a notch; else the main screen.
@@ -325,16 +328,62 @@ final class DynamicIslandController: ObservableObject {
         (targetScreen?.safeAreaInsets.top ?? 0) > 0
     }
 
-    /// Collapsed pill metrics: wraps the physical notch when there is one.
+    /// Closed notch size, matching NotchAnimationDemo's getClosedNotchSize().
     var collapsedSize: CGSize {
-        guard let screen = targetScreen else { return CGSize(width: 190, height: 30) }
-        if screen.safeAreaInsets.top > 0 {
-            let left = screen.auxiliaryTopLeftArea?.width ?? 0
-            let right = screen.auxiliaryTopRightArea?.width ?? 0
-            let notchWidth = max(screen.frame.width - left - right, 150)
-            return CGSize(width: notchWidth + 44, height: screen.safeAreaInsets.top + 4)
+        guard let screen = targetScreen else { return CGSize(width: 185, height: 32) }
+        var notchWidth: CGFloat = 185
+        if let left = screen.auxiliaryTopLeftArea?.width,
+           let right = screen.auxiliaryTopRightArea?.width {
+            notchWidth = screen.frame.width - left - right + 4
         }
-        return CGSize(width: 190, height: 30)
+        let notchHeight = screen.safeAreaInsets.top > 0 ? screen.safeAreaInsets.top : 32
+        return CGSize(width: notchWidth, height: notchHeight)
+    }
+}
+
+/// Clicks in the clear part of the reserved window fall through to the desktop.
+private final class IslandPassThroughView: NSView {
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        let hit = super.hitTest(point)
+        return hit == self ? nil : hit
+    }
+}
+
+/// Notch outline from NotchAnimationDemo. The corner radii are animatable, so
+/// they spring with the open and close.
+private struct NotchShape: Shape {
+    private var topCornerRadius: CGFloat
+    private var bottomCornerRadius: CGFloat
+
+    init(topCornerRadius: CGFloat? = nil, bottomCornerRadius: CGFloat? = nil) {
+        self.topCornerRadius = topCornerRadius ?? 6
+        self.bottomCornerRadius = bottomCornerRadius ?? 14
+    }
+
+    var animatableData: AnimatablePair<CGFloat, CGFloat> {
+        get { .init(topCornerRadius, bottomCornerRadius) }
+        set {
+            topCornerRadius = newValue.first
+            bottomCornerRadius = newValue.second
+        }
+    }
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addQuadCurve(to: CGPoint(x: rect.minX + topCornerRadius, y: rect.minY + topCornerRadius),
+                          control: CGPoint(x: rect.minX + topCornerRadius, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.minX + topCornerRadius, y: rect.maxY - bottomCornerRadius))
+        path.addQuadCurve(to: CGPoint(x: rect.minX + topCornerRadius + bottomCornerRadius, y: rect.maxY),
+                          control: CGPoint(x: rect.minX + topCornerRadius, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.maxX - topCornerRadius - bottomCornerRadius, y: rect.maxY))
+        path.addQuadCurve(to: CGPoint(x: rect.maxX - topCornerRadius, y: rect.maxY - bottomCornerRadius),
+                          control: CGPoint(x: rect.maxX - topCornerRadius, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.maxX - topCornerRadius, y: rect.minY + topCornerRadius))
+        path.addQuadCurve(to: CGPoint(x: rect.maxX, y: rect.minY),
+                          control: CGPoint(x: rect.maxX - topCornerRadius, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
+        return path
     }
 }
 
@@ -372,16 +421,6 @@ struct NotchHubShape: Shape {
 enum IslandPage: String, CaseIterable, Identifiable {
     case controls
     case grid
-    case volumeMixer
-    case nowPlaying
-    case system
-    case network
-    case calendar
-    case notifications
-    case timer
-    case downloads
-    case aiAgents
-    case keepAwake
     case clipboard
 
     var id: String { rawValue }
@@ -390,16 +429,6 @@ enum IslandPage: String, CaseIterable, Identifiable {
         switch self {
         case .controls: return String(localized: "Controls")
         case .grid: return String(localized: "Quick access")
-        case .volumeMixer: return String(localized: "Volume mixer")
-        case .nowPlaying: return String(localized: "Now Playing")
-        case .system: return String(localized: "System")
-        case .network: return String(localized: "Network")
-        case .calendar: return String(localized: "Calendar")
-        case .notifications: return String(localized: "Notifications")
-        case .timer: return String(localized: "Timer")
-        case .downloads: return String(localized: "Downloads")
-        case .aiAgents: return String(localized: "AI Agents")
-        case .keepAwake: return String(localized: "Keep Awake")
         case .clipboard: return String(localized: "Clipboard")
         }
     }
@@ -408,25 +437,12 @@ enum IslandPage: String, CaseIterable, Identifiable {
         switch self {
         case .controls: return "slider.horizontal.3"
         case .grid: return "square.grid.2x2"
-        case .volumeMixer: return "speaker.wave.2.fill"
-        case .nowPlaying: return "music.note"
-        case .system: return "gauge.with.needle"
-        case .network: return "globe"
-        case .calendar: return "calendar"
-        case .notifications: return "bell.fill"
-        case .timer: return "timer"
-        case .downloads: return "arrow.down.circle"
-        case .aiAgents: return "sparkles"
-        case .keepAwake: return "moon.fill"
         case .clipboard: return "doc.on.clipboard"
         }
     }
 
     var accent: Color {
         switch self {
-        case .nowPlaying: return .pink
-        case .calendar: return .red
-        case .timer, .aiAgents, .keepAwake: return .orange
         case .clipboard: return .teal
         default: return .white
         }
@@ -436,14 +452,7 @@ enum IslandPage: String, CaseIterable, Identifiable {
     var shortcutDisplay: String? {
         switch self {
         case .controls: return "⌥⌘C"
-        case .volumeMixer: return "⌥⌘V"
-        case .nowPlaying: return "⌥⌘M"
-        case .system: return "⌥⌘I"
-        case .calendar: return "⌥⌘A"
-        case .notifications: return "⌥⌘N"
-        case .timer: return "⌥⌘R"
-        case .downloads: return "⌥⌘D"
-        case .aiAgents: return "⌥⌘G"
+        case .clipboard: return HotkeyManager.shared.shortcut(for: .clipboard)?.display
         default: return nil
         }
     }
@@ -451,8 +460,6 @@ enum IslandPage: String, CaseIterable, Identifiable {
     /// The feature that must be enabled for this page's data (nil = always).
     var requiredFeatureID: String? {
         switch self {
-        case .system: return "system-glance"
-        case .keepAwake: return "keep-awake"
         case .clipboard: return "clipboard"
         default: return nil
         }
@@ -461,21 +468,11 @@ enum IslandPage: String, CaseIterable, Identifiable {
 
 // MARK: - Root view
 
-/// The hub's "extract from the notch" transition: it unfurls downward from the
-/// top edge while fading in, so it reads as being pulled out of the notch rather
-/// than zooming in from nothing.
-private struct IslandUnfurl: ViewModifier {
-    var progress: Double
-    func body(content: Content) -> some View {
-        content
-            .scaleEffect(x: 0.92 + 0.08 * progress, y: 0.16 + 0.84 * progress, anchor: .top)
-            .opacity(min(progress * 1.4, 1))
-    }
-}
-
-extension AnyTransition {
-    static var island: AnyTransition {
-        .modifier(active: IslandUnfurl(progress: 0), identity: IslandUnfurl(progress: 1))
+private struct IslandHubSizeKey: PreferenceKey {
+    static var defaultValue: CGSize = .zero
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
+        let next = nextValue()
+        if next.width > value.width { value = next }
     }
 }
 
@@ -484,43 +481,167 @@ struct IslandRootView: View {
     @ObservedObject var registry: FeatureRegistry
     @ObservedObject var prefs = IslandPrefs.shared
     @ObservedObject var coordinator = SweepCoordinator.shared
-    @ObservedObject var keepAwake = KeepAwakeModule.shared
     @ObservedObject var apps = AppSweepModule.shared
 
-    /// The pill stays tucked away until the mouse reaches the notch area.
-    @State private var isRevealed = false
-    @State private var expandWork: DispatchWorkItem?
+    @State private var hoverTask: Task<Void, Never>?
+    @State private var isHovering = false
+
+    /// Delay before the open notch closes after the pointer leaves.
+    private let hoverExitDelayMilliseconds = 350
+
+    private var openedInsets: (top: CGFloat, bottom: CGFloat) { islandCornerRadiusInsets.opened }
+
+    private var topCornerRadius: CGFloat {
+        if island.isExpanded { return openedInsets.top }
+        return displayClosedNotchHeight > 0 ? islandCornerRadiusInsets.closed.top : 0
+    }
+
+    private var currentNotchShape: NotchShape {
+        let bottomCorner: CGFloat
+        if island.isExpanded {
+            bottomCorner = openedInsets.bottom
+        } else {
+            bottomCorner = displayClosedNotchHeight > 0 ? islandCornerRadiusInsets.closed.bottom : 0
+        }
+        return NotchShape(topCornerRadius: topCornerRadius, bottomCornerRadius: bottomCorner)
+    }
+
+    private var displayClosedNotchHeight: CGFloat {
+        island.collapsedSize.height == 0 ? 10 : island.collapsedSize.height
+    }
+
+    /// Outer height of the open shape: the closed strip, the hub, and the
+    /// bottom padding the demo puts inside the frame.
+    private var openFrameHeight: CGFloat? {
+        guard let hub = island.expandedWindowSize else { return nil }
+        return displayClosedNotchHeight + hub.height + 12
+    }
 
     var body: some View {
         ZStack(alignment: .top) {
-            if island.isExpanded {
-                IslandHubView(island: island, registry: registry)
-                    .transition(.island)
-            } else {
-                collapsed
-                    .transition(.opacity.animation(.easeOut(duration: 0.12)))
+            Color.clear.allowsHitTesting(false)
+            VStack(spacing: 0) {
+                notchLayout
+                    .frame(height: island.isExpanded ? openFrameHeight : nil, alignment: .top)
+                    .animation(
+                        island.isExpanded ? StandardAnimations.open : StandardAnimations.close,
+                        value: island.isExpanded
+                    )
+                    .contentShape(Rectangle())
+                    .onHover { handleHover($0) }
+                    .onTapGesture {
+                        if !island.isExpanded { doOpen() }
+                    }
             }
         }
-        // One continuous spring so the hub unfurls from the notch in lockstep
-        // with the window growing beneath it.
-        .animation(.spring(response: 0.44, dampingFraction: 0.82), value: island.isExpanded)
-        .onChange(of: island.isExpanded) { _, expanded in
-            if !expanded { isRevealed = false }
-        }
+        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .ignoresSafeArea()
+        .compositingGroup()
         .environment(\.colorScheme, .dark)
+        .preferredColorScheme(.dark)
+        .onChange(of: prefs.expandedWidth) { _, _ in island.relayoutIfSettled() }
+        .onChange(of: prefs.contentHeight) { _, _ in island.relayoutIfSettled() }
+        .onPreferenceChange(IslandHubSizeKey.self) { island.noteHubSize($0) }
+        .background {
+            if !island.isExpanded {
+                IslandHubView(island: island, registry: registry, live: false)
+                    .fixedSize()
+                    .opacity(0)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+            }
+        }
     }
 
-    /// Collapsed state: an invisible hover strip hugging the notch. Moving the
-    /// mouse there slides the pill out; lingering (or clicking) opens the hub.
-    private var collapsed: some View {
-        let size = island.collapsedSize
-        let shape = UnevenRoundedRectangle(
-            cornerRadii: .init(topLeading: island.hasNotch ? 0 : 14,
-                               bottomLeading: 14,
-                               bottomTrailing: 14,
-                               topTrailing: island.hasNotch ? 0 : 14),
-            style: .continuous)
-        return HStack(spacing: 8) {
+    /// Closed: one black pill (demo). Open: black panel only — satellites sit
+    /// outside that fill so wallpaper shows between them and the island.
+    private var notchLayout: some View {
+        Group {
+            if island.isExpanded {
+                IslandHubView(island: island, registry: registry)
+                    .fixedSize()
+                    .transition(
+                        .scale(scale: 0.8, anchor: .top)
+                            .combined(with: .opacity)
+                            .animation(.smooth(duration: 0.35))
+                    )
+                    .allowsHitTesting(true)
+            } else {
+                closedPill
+            }
+        }
+        .opacity(island.collapsedSize.height == 0 && !island.isExpanded ? 0.01 : 1)
+    }
+
+    private var closedPill: some View {
+        ZStack {
+            Rectangle()
+                .fill(.clear)
+                .frame(width: max(island.collapsedSize.width - 20, 1),
+                       height: displayClosedNotchHeight)
+            closedStatus
+        }
+        .padding(.horizontal, islandCornerRadiusInsets.closed.bottom)
+        .background(.black)
+        .clipShape(currentNotchShape)
+        .overlay(alignment: .top) {
+            displayClosedNotchHeight == 0
+                ? nil
+                : Rectangle()
+                    .fill(.black)
+                    .frame(height: 1)
+                    .padding(.horizontal, topCornerRadius)
+        }
+        .shadow(
+            color: isHovering ? .black.opacity(0.7) : .clear,
+            radius: 6
+        )
+    }
+
+    @discardableResult
+    private func doOpen() -> Bool {
+        guard !island.isExpanded else { return false }
+        withAnimation(StandardAnimations.interactive) {
+            island.isExpanded = true
+        }
+        return true
+    }
+
+    private func handleHover(_ hovering: Bool) {
+        hoverTask?.cancel()
+
+        if hovering {
+            withAnimation(StandardAnimations.interactive) {
+                isHovering = true
+            }
+            guard !island.isExpanded else { return }
+            hoverTask = Task {
+                try? await Task.sleep(for: .milliseconds(100))
+                guard !Task.isCancelled else { return }
+                await MainActor.run {
+                    guard !self.island.isExpanded, self.isHovering else { return }
+                    self.doOpen()
+                }
+            }
+        } else {
+            hoverTask = Task {
+                try? await Task.sleep(for: .milliseconds(hoverExitDelayMilliseconds))
+                guard !Task.isCancelled else { return }
+                await MainActor.run {
+                    withAnimation(StandardAnimations.interactive) {
+                        self.isHovering = false
+                    }
+                    if self.island.isExpanded {
+                        self.island.isExpanded = false
+                    }
+                }
+            }
+        }
+    }
+
+    private var closedStatus: some View {
+        HStack(spacing: 8) {
             Image(systemName: coordinator.isSwept ? "wind.circle.fill" : "wind")
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(coordinator.isSwept ? Color.orange : .white)
@@ -529,44 +650,9 @@ struct IslandRootView: View {
             }
             status
         }
-        .padding(.horizontal, 14)
-        .padding(.top, island.hasNotch ? 2 : 0)
-        .frame(width: size.width, height: size.height)
-        .background(shape.fill(.black))
-        .overlay(prefs.showOutline ? shape.strokeBorder(.white.opacity(0.25), lineWidth: 1) : nil)
-        // The pill peeks out of the notch the instant the mouse arrives, then
-        // the hub extracts from it — a single, continuous reveal.
-        .opacity(isRevealed ? 1 : 0)
-        .scaleEffect(x: isRevealed ? 1 : 0.9, y: isRevealed ? 1 : 0.5, anchor: .top)
-        .offset(y: isRevealed ? 0 : -size.height)
-        .animation(.spring(response: 0.28, dampingFraction: 0.82), value: isRevealed)
-        .frame(width: size.width, height: size.height)
-        .contentShape(Rectangle())
-        .onHover { hovering in
-            if hovering {
-                isRevealed = true
-                scheduleExpand()
-            } else {
-                expandWork?.cancel()
-                isRevealed = false
-            }
-        }
-        .onTapGesture {
-            expandWork?.cancel()
-            island.isExpanded = true
-        }
-    }
-
-    /// Open the hub shortly after the mouse settles on the notch — long enough
-    /// that a cursor merely passing the top edge doesn't trigger it, short
-    /// enough that it feels immediate.
-    private func scheduleExpand() {
-        expandWork?.cancel()
-        let work = DispatchWorkItem {
-            if isRevealed && !island.isExpanded { island.isExpanded = true }
-        }
-        expandWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22, execute: work)
+        .padding(.horizontal, 10)
+        .frame(width: max(island.collapsedSize.width - 20, 1),
+               height: displayClosedNotchHeight)
     }
 
     @ViewBuilder
@@ -576,25 +662,14 @@ struct IslandRootView: View {
                 HStack(spacing: 3) {
                     Image(systemName: "clock.arrow.circlepath")
                         .font(.system(size: 9))
-                    Text(KeepAwakeCard.format(remaining))
+                    Text(AppSweepModule.formatInterval(remaining))
                         .font(.caption2.monospacedDigit().weight(.semibold))
                 }
                 .foregroundStyle(Color.accentColor)
             }
-            if keepAwake.isSessionActive {
-                HStack(spacing: 3) {
-                    Image(systemName: "moon.fill")
-                        .font(.system(size: 9))
-                    if let remaining = keepAwake.remaining {
-                        Text(KeepAwakeCard.format(remaining))
-                            .font(.caption2.monospacedDigit().weight(.semibold))
-                    }
-                }
-                .foregroundStyle(.orange)
-            }
             if coordinator.isSwept {
                 Circle().fill(Color.accentColor).frame(width: 6, height: 6)
-            } else if !keepAwake.isSessionActive && apps.autoRestoreRemaining == nil && !island.hasNotch {
+            } else if apps.autoRestoreRemaining == nil && !island.hasNotch {
                 Text("Sweep")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.secondary)
@@ -603,94 +678,85 @@ struct IslandRootView: View {
     }
 }
 
+
 // MARK: - Expanded hub
 
-/// The island's hub: a flared black panel with paged content, ringed by floating
-/// circular satellite buttons (pages left, settings/volume right, music + alerts
-/// at the bottom). Matches the reference "Croissant" layout.
+/// The island's hub: Sweep and Clipboard pages, with quick-access and settings
+/// satellites on the sides.
 struct IslandHubView: View {
     @ObservedObject var island: DynamicIslandController
     @ObservedObject var registry: FeatureRegistry
+    /// False for the hidden copy that only measures the hub.
+    var live: Bool = true
     @ObservedObject var prefs = IslandPrefs.shared
-    @ObservedObject var coordinator = SweepCoordinator.shared
-    @ObservedObject var desktop = DesktopSweepModule.shared
-    @ObservedObject var apps = AppSweepModule.shared
-    @ObservedObject var keepAwake = KeepAwakeModule.shared
-    @ObservedObject var audio = SystemAudioModule.shared
-    @ObservedObject var timers = TimerModule.shared
-    @ObservedObject var nowPlaying = NowPlayingModule.shared
 
     @State private var page: IslandPage = .controls
-    /// The page to return to with the back chevron (grid remembers it).
-    @State private var backTarget: IslandPage = .controls
 
     private let flare: CGFloat = 14
     private let satelliteSize: CGFloat = 42
 
     var body: some View {
-        VStack(spacing: 12) {
-            HStack(alignment: .top, spacing: 12) {
-                satelliteColumn([
-                    .init(icon: "square.grid.2x2", help: String(localized: "Quick access"),
-                          isActive: page == .grid) { switchTo(.grid) },
-                    .init(icon: "timer", help: String(localized: "Timer"),
-                          isActive: page == .timer || timers.isActive) { switchTo(.timer) },
-                    .init(icon: "gauge.with.needle", help: String(localized: "System"),
-                          isActive: page == .system) { switchTo(.system) },
-                ])
-                .padding(.top, 48)
+        HStack(alignment: .top, spacing: 12) {
+            satelliteColumn([
+                .init(icon: "square.grid.2x2", help: String(localized: "Quick access"),
+                      isActive: page == .grid) { switchTo(.grid) },
+                .init(icon: "doc.on.clipboard", help: String(localized: "Clipboard"),
+                      isActive: page == .clipboard) { switchTo(.clipboard) },
+            ])
+            .padding(.top, 48)
 
-                hubPanel
+            // Black fill + clip live only on the panel. Satellites stay clear of it.
+            openPanel
 
-                satelliteColumn([
-                    .init(icon: "gearshape.fill", help: String(localized: "Settings"),
-                          isActive: false) { openSettings() },
-                    .init(icon: "speaker.wave.1.fill", help: String(localized: "Volume down"),
-                          isActive: false) { nudgeVolume(-0.1) },
-                    .init(icon: "speaker.wave.3.fill", help: String(localized: "Volume up"),
-                          isActive: false) { nudgeVolume(0.1) },
-                ])
-                .padding(.top, 48)
-            }
-
-            bottomSatellites
+            satelliteColumn([
+                .init(icon: "gearshape.fill", help: String(localized: "Settings"),
+                      isActive: false) { openSettings() },
+            ])
+            .padding(.top, 48)
         }
         .padding(.bottom, 8)
-        .contentShape(Rectangle())
-        .onHover { hovering in
-            if !hovering { island.collapse() }
+        .fixedSize()
+        .background {
+            GeometryReader { proxy in
+                Color.clear.preference(key: IslandHubSizeKey.self, value: proxy.size)
+            }
         }
-        .onAppear { startSamplers() }
-        .onDisappear { stopSamplers() }
     }
 
     // MARK: Panel
 
-    private var hubPanel: some View {
+    private var openPanel: some View {
         let shape = NotchHubShape(flare: island.hasNotch ? flare : 6, bottomRadius: 26)
-        return VStack(spacing: 10) {
-            header
-            pageContent
-                .frame(height: prefs.contentHeight, alignment: .top)
-                .clipped()
+        return VStack(spacing: 0) {
+            Color.clear.frame(height: max(island.collapsedSize.height, 1))
+            VStack(spacing: 10) {
+                header
+                pageContent
+                    .frame(height: prefs.contentHeight, alignment: .top)
+                    .clipped()
+            }
+            .padding(.horizontal, flare + 14)
+            .padding(.top, 10)
+            .padding(.bottom, 18)
         }
-        .padding(.horizontal, flare + 14)
-        .padding(.top, 10)
-        .padding(.bottom, 18)
         .frame(width: prefs.expandedWidth)
-        .background(
-            shape.fill(.black)
-                .shadow(color: .black.opacity(0.45), radius: 18, y: 8)
-        )
+        .padding(.horizontal, openedPanelInsets)
+        .padding(.bottom, 12)
+        .background(.black, in: shape)
         .overlay(shape.stroke(.white.opacity(prefs.showOutline ? 0.25 : 0.08), lineWidth: 1))
+        .shadow(color: .black.opacity(0.7), radius: 6)
         .animation(.easeOut(duration: 0.18), value: page)
+    }
+
+    private var openedPanelInsets: CGFloat {
+        islandCornerRadiusInsets.opened.top
     }
 
     private var header: some View {
         HStack(spacing: 10) {
             if page != .controls {
                 Button {
-                    switchTo(page == .network ? .system : .controls)
+                    switchTo(.controls)
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 13, weight: .semibold))
@@ -712,7 +778,6 @@ struct IslandHubView: View {
             Spacer()
             Menu {
                 Button(String(localized: "Island Settings…")) { openSettings() }
-                Button(String(localized: "Open Monitor…")) { openMonitor() }
                 Divider()
                 Button(String(localized: "Quit Sweep")) { NSApp.terminate(nil) }
             } label: {
@@ -744,44 +809,7 @@ struct IslandHubView: View {
         case .controls:
             ControlsHomePage(registry: registry, onOpenPage: switchTo)
         case .grid:
-            IslandGridPage(registry: registry, onOpenPage: switchTo,
-                           onOpenSettings: openSettings, onOpenMonitor: openMonitor)
-        case .volumeMixer:
-            VolumeMixerPage()
-        case .nowPlaying:
-            NowPlayingPage()
-        case .system:
-            if registry.isEnabled("system-glance") {
-                SystemPage(onOpenNetwork: { switchTo(.network) }, onOpenMonitor: openMonitor)
-            } else {
-                IslandFeatureOffPrompt(
-                    featureID: "system-glance",
-                    name: String(localized: "System Glance"),
-                    caption: String(localized: "Live CPU, memory and disk readings. The sampler only runs while this hub is open."),
-                    registry: registry)
-            }
-        case .network:
-            NetworkPage()
-        case .calendar:
-            CalendarPage()
-        case .notifications:
-            NotificationsPage()
-        case .timer:
-            TimerPage()
-        case .downloads:
-            DownloadsPage()
-        case .aiAgents:
-            AIAgentsPage()
-        case .keepAwake:
-            if registry.isEnabled("keep-awake") {
-                IslandKeepAwakePage()
-            } else {
-                IslandFeatureOffPrompt(
-                    featureID: "keep-awake",
-                    name: String(localized: "Keep Awake"),
-                    caption: String(localized: "Stop your Mac from going to sleep, for a while or indefinitely. No permissions needed."),
-                    registry: registry)
-            }
+            IslandGridPage(registry: registry, onOpenPage: switchTo, onOpenSettings: openSettings)
         case .clipboard:
             if registry.isEnabled("clipboard") {
                 IslandClipboardPage(onCollapse: { island.collapse() })
@@ -813,36 +841,19 @@ struct IslandHubView: View {
         }
     }
 
-    private var bottomSatellites: some View {
-        HStack(spacing: 14) {
-            satelliteButton(.init(icon: "music.note",
-                                  help: String(localized: "Now Playing"),
-                                  isActive: page == .nowPlaying) { switchTo(.nowPlaying) },
-                            diameter: satelliteSize)
-            satelliteButton(.init(icon: "bell.fill",
-                                  help: String(localized: "Notifications"),
-                                  isActive: page == .notifications) { switchTo(.notifications) },
-                            diameter: satelliteSize)
-        }
-    }
-
-    private func satelliteButton(_ satellite: Satellite, diameter: CGFloat,
-                                 dimmed: Bool = false) -> some View {
+    private func satelliteButton(_ satellite: Satellite, diameter: CGFloat) -> some View {
         Button(action: satellite.action) {
             Image(systemName: satellite.icon)
                 .font(.system(size: diameter * 0.38, weight: .semibold))
-                .foregroundStyle(satellite.isActive ? Color.orange : .white)
+                .foregroundStyle(.white)
                 .frame(width: diameter, height: diameter)
-                .background(
-                    Circle().fill(dimmed ? Color(white: 0.42).opacity(0.9)
-                                         : Color(white: 0.11))
-                )
+                .background(Circle().fill(.black))
                 .overlay(
-                    satellite.isActive
-                        ? Circle().strokeBorder(Color.orange.opacity(0.6), lineWidth: 1)
-                        : nil
+                    Circle().strokeBorder(
+                        satellite.isActive ? Color.orange.opacity(0.85) : Color.white.opacity(0.12),
+                        lineWidth: satellite.isActive ? 1.5 : 1)
                 )
-                .shadow(color: .black.opacity(0.35), radius: 6, y: 2)
+                .shadow(color: .black.opacity(0.45), radius: 8, y: 3)
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
@@ -855,29 +866,10 @@ struct IslandHubView: View {
         page = (page == newPage && newPage != .controls) ? .controls : newPage
     }
 
-    private func nudgeVolume(_ delta: Double) {
-        audio.setMasterVolume(min(max(audio.masterVolume + delta, 0), 1))
-    }
-
-    private func startSamplers() {
-        audio.start()
-        if nowPlaying.isAvailable { nowPlaying.start() }
-    }
-
-    private func stopSamplers() {
-        audio.stop()
-        nowPlaying.stop()
-    }
-
     private func openSettings() {
         island.collapse()
         NotificationCenter.default.post(name: .sweepOpenSettings, object: nil,
                                         userInfo: ["section": SettingsSection.island.rawValue])
-    }
-
-    private func openMonitor() {
-        island.collapse()
-        NotificationCenter.default.post(name: .sweepOpenMonitor, object: nil)
     }
 }
 
@@ -1007,7 +999,7 @@ struct IslandSettingsPage: View {
     var body: some View {
         SettingsPageScaffold(
             title: String(localized: "Dynamic Island"),
-            subtitle: String(localized: "Your music, controls and everyday tools, together at the top of your screen. Hidden until you move the mouse to the notch, then it slides out. Changes apply live.")
+            subtitle: String(localized: "Sweep and Clipboard, together at the top of your screen. Hidden until you move the mouse to the notch, then it slides out. Changes apply live.")
         ) {
             SettingsCard {
                 SettingsRow(icon: "oval.fill",
@@ -1104,15 +1096,6 @@ struct IslandSettingsPage: View {
     private func tileCaption(_ tile: IslandTile) -> String {
         let base: String
         switch tile {
-        case .volumeMixer: base = String(localized: "Per-app volume sliders.")
-        case .nowPlaying: base = String(localized: "The current track and transport controls.")
-        case .system: base = String(localized: "Live CPU, memory, battery and network.")
-        case .calendar: base = String(localized: "Your upcoming events.")
-        case .notifications: base = String(localized: "Mirror notification banners in the island.")
-        case .timer: base = String(localized: "Timer, Pomodoro and stopwatch.")
-        case .downloads: base = String(localized: "Recent files from your watched folder.")
-        case .aiAgents: base = String(localized: "Local Claude Code usage and cost.")
-        case .keepAwake: base = String(localized: "Keep your Mac awake, timed or indefinitely.")
         case .clipboard: base = String(localized: "Your clipboard history.")
         }
         if !tileAvailable(tile) {

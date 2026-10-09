@@ -116,7 +116,7 @@ struct SettingsPageScaffold<Content: View>: View {
     }
 }
 
-/// Capsule chip picker (used for Keep Awake durations).
+/// Capsule chip picker for discrete options.
 struct ChipPicker<Value: Hashable>: View {
     let options: [(label: String, value: Value)]
     @Binding var selection: Value
@@ -157,8 +157,6 @@ enum FeatureUI {
         case "desktop-sweep": return "menubar.dock.rectangle"
         case "app-sweep": return "macwindow.on.rectangle"
         case "clipboard": return "doc.on.clipboard"
-        case "keep-awake": return "moon"
-        case "system-glance": return "gauge.with.needle"
         default: return "puzzlepiece"
         }
     }
@@ -168,8 +166,6 @@ enum FeatureUI {
         case "desktop-sweep": return .blue
         case "app-sweep": return .indigo
         case "clipboard": return .teal
-        case "keep-awake": return .orange
-        case "system-glance": return .green
         default: return .gray
         }
     }
@@ -381,7 +377,7 @@ struct FeaturesOverviewPage: View {
         Group(title: String(localized: "Sweep"), icon: "wind",
               moduleIDs: ["desktop-sweep", "app-sweep"]),
         Group(title: String(localized: "Utilities"), icon: "wrench.and.screwdriver",
-              moduleIDs: ["clipboard", "keep-awake", "system-glance"]),
+              moduleIDs: ["clipboard"]),
     ]
 
     var body: some View {

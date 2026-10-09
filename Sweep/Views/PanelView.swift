@@ -4,8 +4,6 @@ extension Notification.Name {
     /// Posted with `userInfo["section"]` (SettingsSection rawValue) when a
     /// view wants the settings window opened on a given tab.
     static let sweepOpenSettings = Notification.Name("sweepOpenSettings")
-    /// Posted when a view wants the Monitor window opened.
-    static let sweepOpenMonitor = Notification.Name("sweepOpenMonitor")
 }
 
 /// The popover shown on left-click of the menu bar icon.
@@ -113,26 +111,17 @@ struct PanelView: View {
         .accessibilityLabel(section.name)
     }
 
-    /// Vitals-style footer: open the app's settings, or quit.
+    /// Footer: open settings, or quit.
     private var footer: some View {
         HStack(spacing: 8) {
             Button {
-                NotificationCenter.default.post(name: .sweepOpenMonitor, object: nil)
+                openSettings(.general)
             } label: {
-                Label("Open Monitor", systemImage: "gauge.with.needle")
+                Label("Settings", systemImage: "gearshape")
                     .frame(maxWidth: .infinity)
             }
             .controlSize(.small)
             .buttonStyle(.bordered)
-
-            Button {
-                openSettings(.general)
-            } label: {
-                Image(systemName: "gearshape")
-            }
-            .controlSize(.small)
-            .buttonStyle(.bordered)
-            .help("Settings")
 
             Button {
                 NSApp.terminate(nil)
