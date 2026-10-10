@@ -211,10 +211,14 @@ final class DynamicIslandController: ObservableObject {
     @Published var isExpanded = false {
         didSet {
             guard oldValue != isExpanded else { return }
+            if isExpanded { clearPulse() }
             NotificationCenter.default.post(
                 name: isExpanded ? .sweepPanelDidOpen : .sweepPanelDidClose, object: nil)
         }
     }
+
+    /// Transient widen-and-message state (charging, Sweep, low battery, …).
+    @Published private(set) var activePulse: IslandPulse?
 
     /// Natural size of the whole hub, including the satellite buttons.
     private(set) var expandedWindowSize: CGSize?
@@ -222,13 +226,17 @@ final class DynamicIslandController: ObservableObject {
     private var panel: NSPanel?
     private var hosting: NSHostingController<IslandRootView>?
     private var observers: [NSObjectProtocol] = []
+    private var pulseDismissTask: Task<Void, Never>?
 
     func setVisible(_ visible: Bool) {
         if visible {
             if panel == nil { build() }
             applyFrame()
             panel?.orderFrontRegardless()
+            SystemPowerMonitor.shared.start()
         } else {
+            clearPulse()
+            SystemPowerMonitor.shared.stop()
             if isExpanded { isExpanded = false }
             panel?.orderOut(nil)
         }
@@ -237,6 +245,30 @@ final class DynamicIslandController: ObservableObject {
     func collapse() {
         guard isExpanded else { return }
         isExpanded = false
+    }
+
+    /// Expand the closed notch horizontally, show a short status, then collapse.
+    func presentPulse(_ pulse: IslandPulse) {
+        guard InterfaceMode.current.showsIsland else { return }
+        // Full hub already open — skip; the user is interacting.
+        guard !isExpanded else { return }
+        pulseDismissTask?.cancel()
+        activePulse = pulse
+        let id = pulse.id
+        let duration = pulse.duration
+        pulseDismissTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(duration))
+            guard !Task.isCancelled else { return }
+            if activePulse?.id == id {
+                activePulse = nil
+            }
+        }
+    }
+
+    func clearPulse() {
+        pulseDismissTask?.cancel()
+        pulseDismissTask = nil
+        if activePulse != nil { activePulse = nil }
     }
 
     func containsPointer() -> Bool {
@@ -517,6 +549,23 @@ struct IslandRootView: View {
         return displayClosedNotchHeight + hub.height + 12
     }
 
+    /// Physical camera / notch band — keep this empty; content lives in the wings.
+    private var notchCoreWidth: CGFloat {
+        max(island.collapsedSize.width - 20, 1)
+    }
+
+    /// Extra width on each side of the notch for pulse icon / percentage.
+    private var pulseWingWidth: CGFloat { 108 }
+
+    /// Content width of the closed / pulsing notch (grows outward for pulses).
+    private var closedContentWidth: CGFloat {
+        let core = notchCoreWidth
+        if island.activePulse != nil {
+            return core + pulseWingWidth * 2
+        }
+        return core
+    }
+
     var body: some View {
         ZStack(alignment: .top) {
             Color.clear.allowsHitTesting(false)
@@ -527,6 +576,7 @@ struct IslandRootView: View {
                         island.isExpanded ? StandardAnimations.open : StandardAnimations.close,
                         value: island.isExpanded
                     )
+                    .animation(StandardAnimations.open, value: island.activePulse?.id)
                     .contentShape(Rectangle())
                     .onHover { handleHover($0) }
                     .onTapGesture {
@@ -578,9 +628,13 @@ struct IslandRootView: View {
         ZStack {
             Rectangle()
                 .fill(.clear)
-                .frame(width: max(island.collapsedSize.width - 20, 1),
+                .frame(width: closedContentWidth,
                        height: displayClosedNotchHeight)
-            closedStatus
+            if let pulse = island.activePulse {
+                pulseStatus(pulse)
+            } else {
+                closedStatus
+            }
         }
         .padding(.horizontal, islandCornerRadiusInsets.closed.bottom)
         .background(.black)
@@ -594,9 +648,47 @@ struct IslandRootView: View {
                     .padding(.horizontal, topCornerRadius)
         }
         .shadow(
-            color: isHovering ? .black.opacity(0.7) : .clear,
+            color: (isHovering || island.activePulse != nil) ? .black.opacity(0.7) : .clear,
             radius: 6
         )
+    }
+
+    private func pulseStatus(_ pulse: IslandPulse) -> some View {
+        HStack(spacing: 0) {
+            // Left of the notch (icon + title).
+            HStack(spacing: 6) {
+                Image(systemName: pulse.symbol)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(pulse.tint.color)
+                    .symbolEffect(.bounce, value: pulse.id)
+                Text(pulse.title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+            }
+            .padding(.leading, 10)
+            .frame(width: pulseWingWidth, alignment: .leading)
+
+            // Camera / notch dead zone — nothing drawn here.
+            Color.clear
+                .frame(width: notchCoreWidth, height: displayClosedNotchHeight)
+
+            // Right of the notch (percentage / detail).
+            Group {
+                if let detail = pulse.detail {
+                    Text(detail)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .lineLimit(1)
+                        .monospacedDigit()
+                }
+            }
+            .padding(.trailing, 10)
+            .frame(width: pulseWingWidth, alignment: .trailing)
+        }
+        .frame(width: closedContentWidth, height: displayClosedNotchHeight)
+        .transition(.opacity.combined(with: .scale(scale: 0.92, anchor: .center)))
     }
 
     @discardableResult
@@ -651,8 +743,7 @@ struct IslandRootView: View {
             status
         }
         .padding(.horizontal, 10)
-        .frame(width: max(island.collapsedSize.width - 20, 1),
-               height: displayClosedNotchHeight)
+        .frame(width: closedContentWidth, height: displayClosedNotchHeight)
     }
 
     @ViewBuilder

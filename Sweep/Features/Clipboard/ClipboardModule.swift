@@ -180,6 +180,7 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
     private static let screenshotsOnlyKey = "clipboard.screenshotsToClipboardOnly"
     private static let modeActiveKey = "clipboard.screenshotModeActive"
     private static let previousTargetKey = "clipboard.previousScreenshotTarget"
+    private static let previousScreenshotTargetKey = "clipboard.previousScreenshotTargetKey"
     private static let previousLocationKey = "clipboard.previousScreenshotLocation"
     private static let lastSaveFolderKey = "clipboard.lastSaveFolder"
     private static let screencaptureDomain = "com.apple.screencapture"
@@ -543,17 +544,16 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
         if !isScreenshotModeActive {
             let current = Self.readScreencaptureDefaults()
             defaults.set(current.target, forKey: Self.previousTargetKey)
+            defaults.set(current.screenshotTarget, forKey: Self.previousScreenshotTargetKey)
             if let location = current.location {
                 defaults.set(location, forKey: Self.previousLocationKey)
             } else {
                 defaults.removeObject(forKey: Self.previousLocationKey)
             }
         }
-        // Official override: same key ⌘⇧5 → Options → Save to → Clipboard writes.
-        // When target is "clipboard", ⌘⇧3/4/5 never create a Desktop file —
-        // they only put the image on the pasteboard, which captureIfChanged
-        // already picks up into history. No file watching / deleting needed.
-        Self.writeScreencapture(target: "clipboard", location: nil)
+        // Recent macOS uses `target-screenshot` for ⌘⇧3/4; older builds used
+        // `target`. Set both so Options → Clipboard and shortcuts agree.
+        Self.writeScreencapture(target: "clipboard", screenshotTarget: "clipboard", location: nil)
         Self.reloadScreenshotUI()
         isScreenshotModeActive = true
         screenshotModeOverridden = false
@@ -563,7 +563,7 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
     private func enforceScreenshotTarget() {
         guard isScreenshotModeActive else { return }
         let current = Self.readScreencaptureDefaults()
-        let overridden = current.target != "clipboard"
+        let overridden = current.effectiveScreenshotTarget != "clipboard"
         if screenshotModeOverridden != overridden {
             screenshotModeOverridden = overridden
         }
@@ -578,20 +578,30 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
     private func restoreScreenshotDefaults(reloadUIServer: Bool) {
         let defaults = UserDefaults.standard
         let target = defaults.string(forKey: Self.previousTargetKey) ?? "file"
+        let screenshotTarget = defaults.string(forKey: Self.previousScreenshotTargetKey) ?? target
         let location = defaults.string(forKey: Self.previousLocationKey)
-        Self.writeScreencapture(target: target, location: location)
+        Self.writeScreencapture(target: target, screenshotTarget: screenshotTarget, location: location)
         if reloadUIServer { Self.reloadScreenshotUI() }
         isScreenshotModeActive = false
         screenshotModeOverridden = false
         defaults.removeObject(forKey: Self.previousTargetKey)
+        defaults.removeObject(forKey: Self.previousScreenshotTargetKey)
         defaults.removeObject(forKey: Self.previousLocationKey)
     }
 
-    private static func readScreencaptureDefaults() -> (target: String, location: String?) {
+    private static func readScreencaptureDefaults() -> (
+        target: String,
+        screenshotTarget: String,
+        effectiveScreenshotTarget: String,
+        location: String?
+    ) {
         // Read via `defaults` so we see the same values Screenshot.app writes.
         let target = shellDefaults(read: "target") ?? "file"
-        let location = shellDefaults(read: "location")
-        return (target, location)
+        // Sequoia+ uses target-screenshot for ⌘⇧3/4; fall back to target.
+        let screenshotTarget = shellDefaults(read: "target-screenshot") ?? target
+        let location = shellDefaults(read: "location-screenshot")
+            ?? shellDefaults(read: "location")
+        return (target, screenshotTarget, screenshotTarget, location)
     }
 
     private static func shellDefaults(read key: String) -> String? {
@@ -612,31 +622,35 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
         return (text?.isEmpty == false) ? text : nil
     }
 
-    private static func writeScreencapture(target: String, location: String?) {
-        // Same preference Screenshot Options writes for “Save to → Clipboard”.
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/defaults")
-        process.arguments = ["write", screencaptureDomain, "target", target]
-        try? process.run()
-        process.waitUntilExit()
+    private static func writeScreencapture(target: String, screenshotTarget: String, location: String?) {
+        // `target` (legacy) + `target-screenshot` (current ⌘⇧3/4 destination).
+        shellDefaultsWrite(key: "target", value: target)
+        shellDefaultsWrite(key: "target-screenshot", value: screenshotTarget)
 
         if let prefs = UserDefaults(suiteName: screencaptureDomain) {
             prefs.set(target, forKey: "target")
+            prefs.set(screenshotTarget, forKey: "target-screenshot")
             prefs.synchronize()
         }
         CFPreferencesAppSynchronize(screencaptureDomain as CFString)
 
         if let location, !location.isEmpty {
-            let loc = Process()
-            loc.executableURL = URL(fileURLWithPath: "/usr/bin/defaults")
-            loc.arguments = ["write", screencaptureDomain, "location", location]
-            try? loc.run()
-            loc.waitUntilExit()
+            shellDefaultsWrite(key: "location", value: location)
+            shellDefaultsWrite(key: "location-screenshot", value: location)
             if let prefs = UserDefaults(suiteName: screencaptureDomain) {
                 prefs.set(location, forKey: "location")
+                prefs.set(location, forKey: "location-screenshot")
                 prefs.synchronize()
             }
         }
+    }
+
+    private static func shellDefaultsWrite(key: String, value: String) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/defaults")
+        process.arguments = ["write", screencaptureDomain, key, value]
+        try? process.run()
+        process.waitUntilExit()
     }
 
     private static func reloadScreenshotUI() {

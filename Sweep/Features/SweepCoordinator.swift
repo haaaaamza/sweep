@@ -14,6 +14,8 @@ final class SweepCoordinator: ObservableObject {
     var onStateChange: ((Bool) -> Void)?
 
     private var registry: FeatureRegistry { .shared }
+    /// Skip the first sync so relaunching while swept doesn’t flash a pulse.
+    private var hasBootstrapped = false
 
     /// True when at least one sweep feature is enabled, i.e. Sweep All can do something.
     var hasAnySweepFeatureEnabled: Bool {
@@ -29,7 +31,11 @@ final class SweepCoordinator: ObservableObject {
         if newState != isSwept {
             isSwept = newState
             onStateChange?(newState)
+            if hasBootstrapped {
+                DynamicIslandController.shared.presentPulse(newState ? .swept : .restored)
+            }
         }
+        hasBootstrapped = true
     }
 
     func toggleSweepAll() {
