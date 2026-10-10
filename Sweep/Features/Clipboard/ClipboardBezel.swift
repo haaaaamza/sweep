@@ -158,7 +158,7 @@ final class ClipboardBezelController: ObservableObject {
         let hi = min(items.count - 1, center + 2)
         let slice = Array(items[lo...hi])
         DispatchQueue.global(qos: .userInitiated).async {
-            for clipping in slice where clipping.kind == .image {
+            for clipping in slice {
                 _ = module.thumbnail(for: clipping, maxPixel: 360)
             }
         }
@@ -194,6 +194,89 @@ final class ClipboardBezelController: ObservableObject {
         guard !required.isEmpty else { return }
         if flags.intersection(required).isEmpty {
             commit()
+        }
+    }
+
+    func handlePanelKeyDown(_ event: NSEvent) -> Bool {
+        guard isScreenshotChord(event) else { return false }
+        return capturePopupAndClose()
+    }
+
+    /// ⌘⇧3/4/5 while the popup is open: save a picture of this popup, then hide.
+    /// The system screenshot tool cannot capture this panel, and swallowing the
+    /// real key (or faking one) left the popup stuck with no image.
+    func capturePopupAndClose() -> Bool {
+        guard isShowing, let panel else { return false }
+        panel.displayIfNeeded()
+        guard let image = Self.image(of: panel), let png = Self.pngData(from: image) else { return false }
+        hide()
+        let item = NSPasteboardItem()
+        item.setData(png, forType: .png)
+        if let tiff = image.tiffRepresentation {
+            item.setData(tiff, forType: .tiff)
+        }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.writeObjects([item])
+        Self.writeScreenshotFile(png)
+        return true
+    }
+
+    private static func image(of panel: NSWindow) -> NSImage? {
+        let windowID = CGWindowID(panel.windowNumber)
+        if let cgImage = CGWindowListCreateImage(.null, .optionIncludingWindow, windowID, [.boundsIgnoreFraming, .bestResolution]),
+           cgImage.width > 1, cgImage.height > 1 {
+            return NSImage(cgImage: cgImage, size: NSSize(width: cgImage.width, height: cgImage.height))
+        }
+        guard let view = panel.contentView else { return nil }
+        let bounds = view.bounds
+        guard bounds.width > 1, bounds.height > 1,
+              let rep = view.bitmapImageRepForCachingDisplay(in: bounds) else { return nil }
+        view.cacheDisplay(in: bounds, to: rep)
+        let image = NSImage(size: bounds.size)
+        image.addRepresentation(rep)
+        return image
+    }
+
+    private static func pngData(from image: NSImage) -> Data? {
+        guard let tiff = image.tiffRepresentation,
+              let rep = NSBitmapImageRep(data: tiff) else { return nil }
+        return rep.representation(using: .png, properties: [:])
+    }
+
+    private static func writeScreenshotFile(_ png: Data) {
+        let folder = screenshotFolder()
+        let stamp = screenshotStamp.string(from: Date())
+        let url = folder.appendingPathComponent("Screenshot \(stamp).png")
+        do {
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            try png.write(to: url, options: .atomic)
+        } catch { }
+    }
+
+    private static let screenshotStamp: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd 'at' h.mm.ss a"
+        return formatter
+    }()
+
+    private static func screenshotFolder() -> URL {
+        let domain = UserDefaults.standard.persistentDomain(forName: "com.apple.screencapture")
+        let raw = (domain?["location-screenshot"] as? String) ?? (domain?["location"] as? String)
+        if let raw, !raw.isEmpty {
+            return URL(fileURLWithPath: (raw as NSString).expandingTildeInPath, isDirectory: true)
+        }
+        return FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop")
+    }
+
+    private func isScreenshotChord(_ event: NSEvent) -> Bool {
+        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        guard flags.contains(.command), flags.contains(.shift) else { return false }
+        switch Int(event.keyCode) {
+        case kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5, kVK_ANSI_6:
+            return true
+        default:
+            return false
         }
     }
 
@@ -242,6 +325,10 @@ final class ClipboardBezelController: ObservableObject {
         // SwiftUI focus navigation from swallowing ← →.
         localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self, self.isShowing else { return event }
+            if self.isScreenshotChord(event) {
+                if self.capturePopupAndClose() { return nil }
+                return event
+            }
             switch Int(event.keyCode) {
             case kVK_Escape:
                 self.cancel()
@@ -313,7 +400,10 @@ final class ClipboardBezelPanel: NSPanel {
                    styleMask: [.borderless, .nonactivatingPanel],
                    backing: .buffered, defer: false)
         isFloatingPanel = true
-        level = .statusBar
+        // Floating, not status-bar: status-bar windows are omitted from
+        // screenshots and cover the selection UI, so ⌘⇧4 cannot capture them.
+        level = .floating
+        sharingType = .readOnly
         backgroundColor = .clear
         isOpaque = false
         hasShadow = true
@@ -327,6 +417,7 @@ final class ClipboardBezelPanel: NSPanel {
     override var canBecomeMain: Bool { false }
 
     override func keyDown(with event: NSEvent) {
+        if controller.handlePanelKeyDown(event) { return }
         // Local monitor normally consumes nav keys first. Fallback only.
         switch Int(event.keyCode) {
         case kVK_Escape: controller.cancel()
@@ -491,8 +582,13 @@ private struct BezelKindBadge: View {
                 label = String(localized: "Image")
             }
         case .text:
-            symbol = "textformat"
-            label = String(localized: "\(clipping.text.count) characters")
+            symbol = clipping.previewImageFiles.isEmpty ? "textformat" : "photo.on.rectangle"
+            let shown = clipping.visibleText.trimmingCharacters(in: .whitespacesAndNewlines)
+            if shown.isEmpty {
+                label = clipping.preview
+            } else {
+                label = String(localized: "\(shown.count) characters")
+            }
         }
         return Label(label, systemImage: symbol)
             .font(.caption.weight(.medium))
@@ -511,39 +607,68 @@ private struct BezelContent: View {
     var body: some View {
         switch clipping.kind {
         case .image:
-            if let image = module.thumbnail(for: clipping, maxPixel: compact ? 720 : 900) {
-                Image(nsImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .strokeBorder(.white.opacity(0.12), lineWidth: 1)
-                    )
-            } else {
-                Label(clipping.preview, systemImage: "photo")
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
-            }
+            imageBody
         case .text:
-            if clipping.text.count <= 140 && !clipping.text.contains("\n") {
-                Text(clipping.text)
+            textBody
+        }
+    }
+
+    @ViewBuilder
+    private var imageBody: some View {
+        if let image = module.thumbnail(for: clipping, maxPixel: compact ? 720 : 900) {
+            Image(nsImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .strokeBorder(.white.opacity(0.12), lineWidth: 1)
+                )
+        } else {
+            Label(clipping.preview, systemImage: "photo")
+                .font(.title3)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var textBody: some View {
+        let shown = clipping.visibleText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let images = module.previewThumbnails(for: clipping, maxPixel: compact ? 360 : 720)
+        return VStack(spacing: 8) {
+            if !images.isEmpty {
+                HStack(spacing: 6) {
+                    ForEach(Array(images.enumerated()), id: \.offset) { _, image in
+                        Image(nsImage: image)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxHeight: compact ? 72 : 140)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+            if shown.isEmpty {
+                Text(clipping.preview)
+                    .font(compact ? .body.weight(.medium) : .title3.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, maxHeight: images.isEmpty ? .infinity : nil)
+            } else if shown.count <= 140 && !shown.contains("\n") {
+                Text(shown)
                     .font(compact ? .body.weight(.medium) : .title3.weight(.medium))
                     .multilineTextAlignment(.center)
                     .lineLimit(5)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(compact ? 10 : 14)
-                    .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 10))
             } else {
-                Text(clipping.text)
+                Text(shown)
                     .font(.callout)
                     .lineLimit(compact ? 6 : 10)
                     .truncationMode(.tail)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .padding(12)
-                    .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 10))
             }
         }
+        .padding(compact ? 10 : 14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 10))
     }
 }
 
@@ -556,7 +681,7 @@ private struct BezelThumb: View {
 
     var body: some View {
         Group {
-            if clipping.kind == .image, let image = module.thumbnail(for: clipping, maxPixel: 180) {
+            if let image = module.thumbnail(for: clipping, maxPixel: 180) {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -671,20 +796,8 @@ private struct ClassicBezelLayout: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            Group {
-                if clipping.kind == .image, let image = module.thumbnail(for: clipping, maxPixel: 900) {
-                    Image(nsImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                } else {
-                    Text(clipping.text)
-                        .font(.title3.weight(.semibold))
-                        .lineLimit(5)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            BezelContent(module: module, clipping: clipping)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             Text("\(index + 1) of \(count)")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
@@ -846,7 +959,7 @@ private struct ListBezelLayout: View {
                 .foregroundStyle(.tertiary)
                 .monospacedDigit()
                 .frame(width: 14, alignment: .trailing)
-            if item.kind == .image, let image = module.thumbnail(for: item, maxPixel: 96) {
+            if let image = module.thumbnail(for: item, maxPixel: 96) {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -907,6 +1020,8 @@ private struct BottomBarBezelLayout: View {
     private func card(at i: Int, size: CGSize) -> some View {
         let item = clippings[i]
         let selected = i == index
+        let previews = module.previewThumbnails(for: item, maxPixel: 360)
+        let caption = item.visibleText.trimmingCharacters(in: .whitespacesAndNewlines)
         return VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 5) {
                 Image(nsImage: BezelUI.sourceIcon(for: item))
@@ -927,8 +1042,27 @@ private struct BottomBarBezelLayout: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .clipShape(RoundedRectangle(cornerRadius: contentCorner))
+                } else if !previews.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 4) {
+                            ForEach(Array(previews.enumerated()), id: \.offset) { _, image in
+                                Image(nsImage: image)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 58)
+                                    .clipped()
+                                    .clipShape(RoundedRectangle(cornerRadius: contentCorner))
+                            }
+                        }
+                        if !caption.isEmpty {
+                            Text(caption)
+                                .font(.caption2)
+                                .lineLimit(3)
+                        }
+                    }
                 } else {
-                    Text(item.text)
+                    Text(caption.isEmpty ? item.preview : caption)
                         .font(.caption2)
                         .lineLimit(6)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -960,6 +1094,9 @@ private struct BottomBarBezelLayout: View {
             let contentWidth = contentHeight * aspect
             let width = min(260, max(108, contentWidth + pad))
             return CGSize(width: width, height: height)
+        }
+        if !item.previewImageFiles.isEmpty {
+            return CGSize(width: 220, height: height)
         }
         return CGSize(width: 160, height: height)
     }
@@ -994,7 +1131,7 @@ private struct PillBezelLayout: View {
             Image(nsImage: BezelUI.sourceIcon(for: clipping))
                 .resizable()
                 .frame(width: 20, height: 20)
-            if clipping.kind == .image, let image = module.thumbnail(for: clipping, maxPixel: 120) {
+            if let image = module.thumbnail(for: clipping, maxPixel: 120) {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -1131,12 +1268,12 @@ private struct GridBezelLayout: View {
     private func cell(_ item: Clipping, number: Int, selected: Bool) -> some View {
         ZStack(alignment: .topLeading) {
             Group {
-                if item.kind == .image, let image = module.thumbnail(for: item, maxPixel: 360) {
+                if let image = module.thumbnail(for: item, maxPixel: 360) {
                     Image(nsImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                 } else {
-                    Text(item.text)
+                    Text(item.visibleText.isEmpty ? item.preview : item.visibleText)
                         .font(.system(size: 9))
                         .foregroundStyle(.secondary)
                         .lineLimit(6)

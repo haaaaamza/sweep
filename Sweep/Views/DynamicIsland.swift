@@ -308,6 +308,7 @@ final class DynamicIslandController: ObservableObject {
         panel.contentView = container
         panel.isFloatingPanel = true
         panel.level = .statusBar
+        panel.sharingType = .readOnly
         panel.backgroundColor = .clear
         panel.isOpaque = false
         panel.hasShadow = false

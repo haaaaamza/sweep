@@ -42,9 +42,9 @@ struct ControlsHomePage: View {
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
-                }
-                Spacer(minLength: 0)
             }
+            Spacer(minLength: 0)
+        }
             Button {
                 coordinator.toggleSweepAll()
             } label: {
@@ -76,26 +76,26 @@ struct ControlsHomePage: View {
 
     private var clipboardCard: some View {
         Button { onOpenPage(.clipboard) } label: {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
                     Image(systemName: "doc.on.clipboard")
-                        .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(.teal)
                     Text("Clipboard")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(.white)
-                    Spacer()
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(.white)
+                Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(.tertiary)
-                }
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.tertiary)
+            }
                 Text(clipboardSummary)
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                     .lineLimit(3)
                     .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .islandCard()
+        }
+        .islandCard()
             .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
         .buttonStyle(.plain)
@@ -393,6 +393,11 @@ struct IslandClipboardPage: View {
     @ViewBuilder
     private func thumbnail(_ clipping: Clipping) -> some View {
         if clipping.kind == .image, let image = module.thumbnail(for: clipping, maxPixel: 96) {
+            Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
+                .frame(width: 26, height: 26)
+                .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        } else if let image = module.thumbnail(for: clipping, maxPixel: 96) {
             Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
                 .frame(width: 26, height: 26)
                 .clipped()
