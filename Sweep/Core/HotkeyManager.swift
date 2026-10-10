@@ -167,10 +167,15 @@ final class HotkeyManager: ObservableObject {
                               EventParamType(typeEventHotKeyID), nil,
                               MemoryLayout<EventHotKeyID>.size, nil, &hotKeyID)
             let manager = Unmanaged<HotkeyManager>.fromOpaque(userData).takeUnretainedValue()
-            switch Slot(rawValue: hotKeyID.id) {
-            case .sweepAll: manager.action?()
-            case .clipboard: manager.clipboardAction?()
-            case nil: break
+            let slot = Slot(rawValue: hotKeyID.id)
+            // Always hop to the main queue — Carbon does not guarantee it, and
+            // off-main UI made the clipboard bezel miss shows / stick open.
+            DispatchQueue.main.async {
+                switch slot {
+                case .sweepAll: manager.action?()
+                case .clipboard: manager.clipboardAction?()
+                case nil: break
+                }
             }
             return noErr
         }, 1, &eventType, Unmanaged.passUnretained(self).toOpaque(), &eventHandler)

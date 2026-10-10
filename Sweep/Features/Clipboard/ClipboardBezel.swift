@@ -86,20 +86,24 @@ enum BezelStyle: String, CaseIterable, Identifiable {
 // MARK: - Controller
 
 /// The Flycut-style overlay: press the clipboard shortcut and it appears.
-/// Pressing the shortcut again (or arrows while holding the modifiers) cycles;
-/// releasing the modifier keys (or Return) chooses the shown clipping and puts
-/// it on the pasteboard — ⌘V then pastes it. Escape cancels. 1–9 jump.
+/// Pressing again (or ← → while holding modifiers) cycles; releasing the
+/// modifiers (or Return) chooses the clipping. Escape cancels.
 ///
-/// The panel is a non-activating key panel: it receives the keystrokes while
-/// the app you were using stays frontmost, so pasting lands in the right app.
+/// Keyboard input goes through the key panel only — no global monitors
+/// (those need Input Monitoring and fail silently without it).
 final class ClipboardBezelController: ObservableObject {
     static let shared = ClipboardBezelController()
 
     @Published private(set) var index = 0
 
     private var panel: ClipboardBezelPanel?
+    private var isShowing = false
+    /// Ignore modifier-release commits until this time (avoids flash-dismiss).
+    private var ignoreReleaseUntil: Date = .distantPast
+    private var localKeyMonitor: Any?
+    private var localFlagsMonitor: Any?
 
-    var isVisible: Bool { panel?.isVisible ?? false }
+    var isVisible: Bool { isShowing }
 
     private var navigableCount: Int {
         let count = ClipboardModule.shared.clippings.count
@@ -109,11 +113,14 @@ final class ClipboardBezelController: ObservableObject {
         return count
     }
 
-    /// The global shortcut was pressed: show the bezel, or step forward.
     func showOrAdvance() {
+        if !Thread.isMainThread {
+            DispatchQueue.main.async { [weak self] in self?.showOrAdvance() }
+            return
+        }
         let module = ClipboardModule.shared
         guard module.isEnabled, !module.clippings.isEmpty else { return }
-        if isVisible {
+        if isShowing {
             advance(1)
         } else {
             index = 0
@@ -124,17 +131,39 @@ final class ClipboardBezelController: ObservableObject {
     func advance(_ delta: Int) {
         let count = navigableCount
         guard count > 0 else { return }
-        // Stop at the ends — no wrap back to the other side.
-        index = min(max(index + delta, 0), count - 1)
+        let next = min(max(index + delta, 0), count - 1)
+        guard next != index else { return }
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) { index = next }
+        prefetchThumbnails(around: next)
     }
 
     func select(_ newIndex: Int) {
         let count = navigableCount
         guard count > 0 else { return }
-        index = min(max(newIndex, 0), count - 1)
+        let next = min(max(newIndex, 0), count - 1)
+        guard next != index else { return }
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) { index = next }
+        prefetchThumbnails(around: next)
     }
 
-    /// 1–9: jump straight to that clipping; in the grid style it also commits.
+    private func prefetchThumbnails(around center: Int) {
+        let module = ClipboardModule.shared
+        let items = module.clippings
+        guard !items.isEmpty else { return }
+        let lo = max(0, center - 2)
+        let hi = min(items.count - 1, center + 2)
+        let slice = Array(items[lo...hi])
+        DispatchQueue.global(qos: .userInitiated).async {
+            for clipping in slice where clipping.kind == .image {
+                _ = module.thumbnail(for: clipping, maxPixel: 360)
+            }
+        }
+    }
+
     func handleDigit(_ digit: Int) {
         let target = digit - 1
         guard target < navigableCount else { return }
@@ -144,18 +173,13 @@ final class ClipboardBezelController: ObservableObject {
         }
     }
 
-    /// Choose the shown clipping: copy it (and auto-paste if enabled).
     func commit() {
-        guard isVisible else { return }
+        guard isShowing else { return }
         let module = ClipboardModule.shared
         let clipping = module.clippings.indices.contains(index) ? module.clippings[index] : nil
-        // Hide first and pick on the next turn so a heavy image pasteboard
-        // write can't keep the bezel on screen.
         hide()
         if let clipping {
-            DispatchQueue.main.async {
-                module.pick(clipping)
-            }
+            DispatchQueue.main.async { module.pick(clipping) }
         }
     }
 
@@ -163,15 +187,11 @@ final class ClipboardBezelController: ObservableObject {
         hide()
     }
 
-    /// Commit when every modifier of the recorded shortcut has been released
-    /// (the Flycut gesture: hold ⌘⇧, tap V to cycle, let go to choose).
+    /// Release ⌘⇧ (etc.) → choose & hide. Ignored during the open grace window.
     func flagsChanged(_ flags: NSEvent.ModifierFlags) {
-        guard isVisible,
-              let shortcut = HotkeyManager.shared.shortcut(for: .clipboard) else { return }
-        var required: NSEvent.ModifierFlags = []
-        if shortcut.carbonModifiers & UInt32(cmdKey) != 0 { required.insert(.command) }
-        if shortcut.carbonModifiers & UInt32(optionKey) != 0 { required.insert(.option) }
-        if shortcut.carbonModifiers & UInt32(controlKey) != 0 { required.insert(.control) }
+        guard isShowing, Date() >= ignoreReleaseUntil else { return }
+        let required = Self.requiredModifiers(of: .clipboard)
+        guard !required.isEmpty else { return }
         if flags.intersection(required).isEmpty {
             commit()
         }
@@ -199,22 +219,89 @@ final class ClipboardBezelController: ObservableObject {
             }
             panel.setFrameOrigin(NSPoint(x: x, y: y))
         }
+
+        isShowing = true
+        ignoreReleaseUntil = Date().addingTimeInterval(0.25)
+        ClipboardModule.shared.setBezelPollingSuspended(true)
+        panel.alphaValue = 1
+        installLocalMonitors()
         panel.makeKeyAndOrderFront(nil)
+        prefetchThumbnails(around: index)
     }
 
     private func hide() {
+        removeLocalMonitors()
+        isShowing = false
+        ClipboardModule.shared.setBezelPollingSuspended(false)
         panel?.orderOut(nil)
+    }
+
+    private func installLocalMonitors() {
+        removeLocalMonitors()
+        // Local monitors run before SwiftUI. Returning nil for arrows stops
+        // SwiftUI focus navigation from swallowing ← →.
+        localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self, self.isShowing else { return event }
+            switch Int(event.keyCode) {
+            case kVK_Escape:
+                self.cancel()
+                return nil
+            case kVK_Return, kVK_ANSI_KeypadEnter:
+                self.commit()
+                return nil
+            case kVK_LeftArrow, kVK_UpArrow:
+                self.advance(-1)
+                return nil
+            case kVK_RightArrow, kVK_DownArrow:
+                self.advance(1)
+                return nil
+            case kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5,
+                 kVK_ANSI_6, kVK_ANSI_7, kVK_ANSI_8, kVK_ANSI_9:
+                if let digit = ClipboardBezelPanel.digitKeyCodes[Int(event.keyCode)] {
+                    self.handleDigit(digit)
+                    return nil
+                }
+                return event
+            default:
+                return event
+            }
+        }
+        localFlagsMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+            self?.flagsChanged(event.modifierFlags)
+            return event
+        }
+    }
+
+    private func removeLocalMonitors() {
+        if let localKeyMonitor {
+            NSEvent.removeMonitor(localKeyMonitor)
+            self.localKeyMonitor = nil
+        }
+        if let localFlagsMonitor {
+            NSEvent.removeMonitor(localFlagsMonitor)
+            self.localFlagsMonitor = nil
+        }
+    }
+
+    private static func requiredModifiers(of slot: HotkeyManager.Slot) -> NSEvent.ModifierFlags {
+        guard let shortcut = HotkeyManager.shared.shortcut(for: slot) else { return [] }
+        var required: NSEvent.ModifierFlags = []
+        if shortcut.carbonModifiers & UInt32(cmdKey) != 0 { required.insert(.command) }
+        if shortcut.carbonModifiers & UInt32(optionKey) != 0 { required.insert(.option) }
+        if shortcut.carbonModifiers & UInt32(controlKey) != 0 { required.insert(.control) }
+        if shortcut.carbonModifiers & UInt32(shiftKey) != 0 { required.insert(.shift) }
+        return required
     }
 }
 
 // MARK: - Panel
 
-/// Borderless, non-activating panel that can take keyboard input without
-/// stealing focus from the frontmost app.
+/// Borderless key panel: receives ← → / Esc / modifier releases while the
+/// previous app stays visually frontmost.
 final class ClipboardBezelPanel: NSPanel {
     private let controller: ClipboardBezelController
 
-    private static let digitKeyCodes: [Int: Int] = [
+    static let digitKeyCodes: [Int: Int] = [
         kVK_ANSI_1: 1, kVK_ANSI_2: 2, kVK_ANSI_3: 3,
         kVK_ANSI_4: 4, kVK_ANSI_5: 5, kVK_ANSI_6: 6,
         kVK_ANSI_7: 7, kVK_ANSI_8: 8, kVK_ANSI_9: 9,
@@ -237,26 +324,16 @@ final class ClipboardBezelPanel: NSPanel {
     }
 
     override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { false }
 
     override func keyDown(with event: NSEvent) {
-        if let digit = Self.digitKeyCodes[Int(event.keyCode)] {
-            controller.handleDigit(digit)
-            return
-        }
+        // Local monitor normally consumes nav keys first. Fallback only.
         switch Int(event.keyCode) {
-        case kVK_Escape:
-            controller.cancel()
-        case kVK_Return, kVK_ANSI_KeypadEnter, kVK_Space:
-            controller.commit()
-        case kVK_LeftArrow, kVK_UpArrow:
-            controller.advance(-1)
-        case kVK_RightArrow, kVK_DownArrow:
-            controller.advance(1)
-        case kVK_ANSI_V where event.modifierFlags.contains(.command):
-            // The recorded hotkey normally swallows this; cover other combos.
-            controller.advance(1)
-        default:
-            super.keyDown(with: event)
+        case kVK_Escape: controller.cancel()
+        case kVK_Return, kVK_ANSI_KeypadEnter: controller.commit()
+        case kVK_LeftArrow, kVK_UpArrow: controller.advance(-1)
+        case kVK_RightArrow, kVK_DownArrow: controller.advance(1)
+        default: super.keyDown(with: event)
         }
     }
 
@@ -267,8 +344,8 @@ final class ClipboardBezelPanel: NSPanel {
 
     override func resignKey() {
         super.resignKey()
-        // Clicked elsewhere: dismiss without choosing.
-        controller.cancel()
+        // Don't auto-cancel here — releasing modifiers / Esc / Return owns
+        // dismiss. resignKey fires often when the previous app stays active.
     }
 }
 
@@ -291,7 +368,8 @@ struct ClipboardBezelView: View {
                 emptyState
             }
         }
-        .animation(.easeOut(duration: 0.16), value: controller.index)
+        // No index animation — arrows must feel instant.
+        .transaction { $0.animation = nil }
         .frame(width: style.panelSize.width, height: style.panelSize.height)
         .background(BezelBackground())
         .clipShape(RoundedRectangle(cornerRadius: style == .pill ? 28 : 18, style: .continuous))
@@ -555,8 +633,6 @@ private struct RefinedBezelLayout: View {
             BezelHeader(clipping: clipping)
             BezelContent(module: module, clipping: clipping)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .id(clipping.id)
-                .transition(.opacity.combined(with: .scale(scale: 0.97)))
             BezelFilmstrip(module: module, controller: controller,
                            clippings: clippings, index: index)
             BezelFooter(index: index, count: clippings.count)
@@ -609,8 +685,6 @@ private struct ClassicBezelLayout: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .id(clipping.id)
-            .transition(.opacity)
             Text("\(index + 1) of \(count)")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
@@ -645,8 +719,6 @@ private struct DeckBezelLayout: View {
                         .opacity(0.45)
                 }
                 card(at: index)
-                    .id(clippings[index].id)
-                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
             }
             .frame(maxHeight: .infinity)
             HStack(spacing: 5) {
@@ -702,8 +774,6 @@ private struct FilmstripBezelLayout: View {
             BezelContent(module: module, clipping: clipping, compact: true)
                 .frame(maxWidth: .infinity)
                 .frame(height: 120)
-                .id(clipping.id)
-                .transition(.opacity)
             HStack(alignment: .bottom, spacing: 10) {
                 ForEach(BezelUI.window(count: clippings.count, index: index, size: 5), id: \.self) { i in
                     BezelThumb(module: module, clipping: clippings[i], selected: i == index,
@@ -762,8 +832,6 @@ private struct ListBezelLayout: View {
                 BezelHeader(clipping: clipping)
                 BezelContent(module: module, clipping: clipping, compact: true)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .id(clipping.id)
-                    .transition(.opacity)
                 BezelFooter(index: index, count: clippings.count)
             }
             .padding(14)
@@ -819,15 +887,17 @@ private struct BottomBarBezelLayout: View {
         VStack(spacing: 10) {
             GeometryReader { geo in
                 let visible = BezelUI.window(count: clippings.count, index: index, size: 5)
-                let raw = visible.map { idealCardSize(for: clippings[$0], selected: $0 == index) }
+                // Size from content aspect only — selection must not resize cards
+                // (that reflow is what felt glitchy on every arrow).
+                let raw = visible.map { idealCardSize(for: clippings[$0]) }
                 let widths = fittedWidths(raw.map(\.width), in: geo.size.width)
-                HStack(alignment: .bottom, spacing: cardSpacing) {
+                HStack(alignment: .center, spacing: cardSpacing) {
                     ForEach(Array(visible.enumerated()), id: \.element) { offset, i in
                         card(at: i, size: CGSize(width: widths[offset], height: raw[offset].height))
                             .onTapGesture { controller.select(i) }
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
             BezelFooter(index: index, count: clippings.count)
         }
@@ -876,27 +946,24 @@ private struct BottomBarBezelLayout: View {
                 .strokeBorder(selected ? Color.accentColor : .white.opacity(0.12),
                               lineWidth: selected ? 2 : 1)
         )
-        .opacity(selected ? 1 : 0.7)
-        .offset(y: selected ? -5 : 0)
+        .opacity(selected ? 1 : 0.72)
     }
 
-    /// Ideal silhouette follows the image’s aspect ratio so the selection
-    /// border maps to a wide/tall shot instead of a fixed square.
-    private func idealCardSize(for item: Clipping, selected: Bool) -> CGSize {
-        let height: CGFloat = selected ? 156 : 142
+    /// Card width follows image aspect; height is stable across selection.
+    private func idealCardSize(for item: Clipping) -> CGSize {
+        let height: CGFloat = 148
         let pad: CGFloat = 18
         let header: CGFloat = 18
         let contentHeight = max(1, height - pad - header)
         if item.kind == .image, let pixels = item.imagePixelSize, pixels.height > 0 {
             let aspect = pixels.width / pixels.height
             let contentWidth = contentHeight * aspect
-            let width = min(280, max(108, contentWidth + pad))
+            let width = min(260, max(108, contentWidth + pad))
             return CGSize(width: width, height: height)
         }
         return CGSize(width: 160, height: height)
     }
 
-    /// Shrink proportionally if the row would overflow the panel.
     private func fittedWidths(_ widths: [CGFloat], in available: CGFloat) -> [CGFloat] {
         guard !widths.isEmpty else { return widths }
         let gaps = cardSpacing * CGFloat(widths.count - 1)
@@ -974,8 +1041,6 @@ private struct SidebarBezelLayout: View {
             VStack(spacing: 14) {
                 BezelContent(module: module, clipping: clipping)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .id(clipping.id)
-                    .transition(.opacity)
                 BezelFilmstrip(module: module, controller: controller,
                                clippings: clippings, index: index)
             }

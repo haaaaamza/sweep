@@ -189,6 +189,13 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
     private var lastChangeCount = 0
     /// Gates didSets until crash-safe restore has run.
     private var ready = false
+    /// While the ⌘⇧V bezel is up, skip pasteboard polling so @Published
+    /// churn doesn't make arrow navigation glitch.
+    private var suspendPolling = false
+
+    func setBezelPollingSuspended(_ suspended: Bool) {
+        suspendPolling = suspended
+    }
 
     private override init() {
         let defaults = UserDefaults.standard
@@ -202,9 +209,11 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
             lastSaveDirectory = URL(fileURLWithPath: path, isDirectory: true)
         }
         super.init()
-        // Crash-safe: if we left the system in clipboard mode, restore first.
-        if defaults.bool(forKey: Self.modeActiveKey) {
-            restoreScreenshotDefaults(reloadUIServer: true)
+        // Crash-safe: only unwind prefs if the toggle is off but the flag was
+        // left set. If the toggle is still on, leave the system as-is — relaunch
+        // must not kill Control Center (that makes the menu bar jump).
+        if defaults.bool(forKey: Self.modeActiveKey), !screenshotsToClipboardOnly {
+            restoreScreenshotDefaults(reloadUIServer: false)
         }
         ready = true
     }
@@ -245,6 +254,7 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
     }
 
     private func tick() {
+        guard !suspendPolling else { return }
         captureIfChanged()
         if screenshotsToClipboardOnly {
             enforceScreenshotTarget()
@@ -541,8 +551,11 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
 
     private func applyScreenshotClipboardTarget() {
         let defaults = UserDefaults.standard
+        let current = Self.readScreencaptureDefaults()
+        let alreadyClipboard = current.target == "clipboard"
+            && current.effectiveScreenshotTarget == "clipboard"
+
         if !isScreenshotModeActive {
-            let current = Self.readScreencaptureDefaults()
             defaults.set(current.target, forKey: Self.previousTargetKey)
             defaults.set(current.screenshotTarget, forKey: Self.previousScreenshotTargetKey)
             if let location = current.location {
@@ -551,10 +564,15 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
                 defaults.removeObject(forKey: Self.previousLocationKey)
             }
         }
-        // Recent macOS uses `target-screenshot` for ⌘⇧3/4; older builds used
-        // `target`. Set both so Options → Clipboard and shortcuts agree.
-        Self.writeScreencapture(target: "clipboard", screenshotTarget: "clipboard", location: nil)
-        Self.reloadScreenshotUI()
+
+        // Skip rewrite + UI reload when prefs are already correct (typical
+        // launch path) so the menu bar does not reshuffle.
+        if !alreadyClipboard {
+            // Recent macOS uses `target-screenshot` for ⌘⇧3/4; older builds used
+            // `target`. Set both so Options → Clipboard and shortcuts agree.
+            Self.writeScreencapture(target: "clipboard", screenshotTarget: "clipboard", location: nil)
+            Self.reloadScreenshotUI()
+        }
         isScreenshotModeActive = true
         screenshotModeOverridden = false
     }
@@ -654,15 +672,15 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
     }
 
     private static func reloadScreenshotUI() {
-        // SystemUIServer alone is not always enough on recent macOS.
-        for name in ["SystemUIServer", "ControlCenter", "screencaptureui"] {
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/killall")
-            process.arguments = [name]
-            process.standardError = Pipe()
-            try? process.run()
-            process.waitUntilExit()
-        }
+        // Only bounce the screenshot UI helper. Never kill ControlCenter or
+        // SystemUIServer — that restarts every menu-bar extra and looks like
+        // Wi‑Fi / Clock / battery sliding around on launch.
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/killall")
+        process.arguments = ["screencaptureui"]
+        process.standardError = Pipe()
+        try? process.run()
+        process.waitUntilExit()
     }
 
     /// Synthesize ⌘V so the clipping lands straight in the active app.
