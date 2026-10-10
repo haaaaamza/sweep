@@ -27,8 +27,10 @@ struct Clipping: Codable, Identifiable, Equatable {
     var date: Date
     var sourceApp: String?
     var sourceBundleID: String?
+    /// Folder of the original pasteboard flavors (RTFD, HTML, images, …).
+    var pasteArchiveID: String?
 
-    init(text: String, sourceApp: String?, sourceBundleID: String?) {
+    init(text: String, sourceApp: String?, sourceBundleID: String?, pasteArchiveID: String? = nil) {
         self.id = UUID()
         self.kind = .text
         self.text = text
@@ -38,10 +40,11 @@ struct Clipping: Codable, Identifiable, Equatable {
         self.date = Date()
         self.sourceApp = sourceApp
         self.sourceBundleID = sourceBundleID
+        self.pasteArchiveID = pasteArchiveID
     }
 
     init(imageFile: String, pixelSize: CGSize, contentHash: String,
-         sourceApp: String?, sourceBundleID: String?) {
+         sourceApp: String?, sourceBundleID: String?, pasteArchiveID: String? = nil) {
         self.id = UUID()
         self.kind = .image
         self.text = ""
@@ -51,6 +54,7 @@ struct Clipping: Codable, Identifiable, Equatable {
         self.date = Date()
         self.sourceApp = sourceApp
         self.sourceBundleID = sourceBundleID
+        self.pasteArchiveID = pasteArchiveID
     }
 
     /// Tolerant decoding: entries saved by older builds were text-only.
@@ -65,6 +69,7 @@ struct Clipping: Codable, Identifiable, Equatable {
         date = try container.decode(Date.self, forKey: .date)
         sourceApp = try container.decodeIfPresent(String.self, forKey: .sourceApp)
         sourceBundleID = try container.decodeIfPresent(String.self, forKey: .sourceBundleID)
+        pasteArchiveID = try container.decodeIfPresent(String.self, forKey: .pasteArchiveID)
     }
 
     /// Single-line preview for the panel card and lists.
@@ -112,6 +117,17 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
     /// Clippings larger than these are skipped/truncated when stored.
     private static let maxClippingLength = 100_000
     private static let maxImageBytes = 50_000_000
+    /// Caps how many images one Cmd-A copy (e.g. Notes) can add at once.
+    private static let maxImagesPerPaste = 12
+    private static let flatRTFDType = NSPasteboard.PasteboardType("com.apple.flat-rtfd")
+    private static let itemImageTypes: [NSPasteboard.PasteboardType] = [
+        .png, .tiff,
+        NSPasteboard.PasteboardType("public.jpeg"),
+        NSPasteboard.PasteboardType("public.jpg"),
+        NSPasteboard.PasteboardType("public.heic"),
+        NSPasteboard.PasteboardType("public.gif"),
+        NSPasteboard.PasteboardType("public.webp"),
+    ]
 
     // MARK: - State
 
@@ -254,6 +270,9 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
     }
 
     private func tick() {
+        if suspendPolling, !ClipboardBezelController.shared.isVisible {
+            suspendPolling = false
+        }
         guard !suspendPolling else { return }
         captureIfChanged()
         if screenshotsToClipboardOnly {
@@ -266,47 +285,405 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
     private func captureIfChanged() {
         let pasteboard = NSPasteboard.general
         guard pasteboard.changeCount != lastChangeCount else { return }
-        lastChangeCount = pasteboard.changeCount
+        let change = pasteboard.changeCount
+        lastChangeCount = change
 
-        // Respect password managers and other apps that mark their content.
         let types = Set((pasteboard.types ?? []).map(\.rawValue))
         guard types.isDisjoint(with: Self.skippedTypes) else { return }
 
         let frontmost = NSWorkspace.shared.frontmostApplication
-        let sourceApp = frontmost?.localizedName
-        let sourceBundleID = frontmost?.bundleIdentifier
+        ingestPasteboard(pasteboard,
+                         app: frontmost?.localizedName,
+                         bundleID: frontmost?.bundleIdentifier,
+                         includeText: true)
+    }
 
-        if var text = pasteboard.string(forType: .string),
+    /// Text is recorded immediately, together with a byte-for-byte copy of the
+    /// pasteboard. ⌘⇧V writes that copy back, so Notes gets text and images
+    /// the same way a direct ⌘V does.
+    private func ingestPasteboard(_ pasteboard: NSPasteboard,
+                                  app: String?,
+                                  bundleID: String?,
+                                  includeText: Bool) {
+        let archiveID = Self.savePasteArchive(pasteboard)
+
+        if includeText,
+           var text = pasteboard.string(forType: .string),
            !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             if text.count > Self.maxClippingLength {
                 text = String(text.prefix(Self.maxClippingLength))
             }
-            rememberText(text, app: sourceApp, bundleID: sourceBundleID)
-        } else if let pngData = Self.pngData(from: pasteboard) {
-            rememberImage(pngData, app: sourceApp, bundleID: sourceBundleID)
+            rememberText(text, app: app, bundleID: bundleID, archiveID: archiveID)
+            return
+        }
+
+        if let png = Self.firstAdvertisedImageData(pasteboard) {
+            rememberImage(png, app: app, bundleID: bundleID, archiveID: archiveID)
+            return
+        }
+
+        if archiveID != nil {
+            rememberText(String(localized: "Rich clipping"), app: app, bundleID: bundleID, archiveID: archiveID)
+        }
+    }
+
+    private struct FlavorRecord: Codable {
+        var type: String
+        var file: String
+    }
+
+    private struct ItemRecord: Codable {
+        var flavors: [FlavorRecord]
+    }
+
+    /// Persist every flavor already on the pasteboard. Does not ask for types
+    /// the source app didn't provide, and does not unpack RTFD (that crashed).
+    private static func savePasteArchive(_ pasteboard: NSPasteboard) -> String? {
+        let items = pasteboard.pasteboardItems ?? []
+        guard !items.isEmpty else { return nil }
+
+        let id = UUID().uuidString
+        let dir = pasteArchivesDirectory.appendingPathComponent(id, isDirectory: true)
+        var records: [ItemRecord] = []
+        var total = 0
+        var fileIndex = 0
+
+        do {
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            for item in items {
+                var flavors: [FlavorRecord] = []
+                for type in item.types {
+                    if skippedTypes.contains(type.rawValue) { continue }
+                    guard let data = item.data(forType: type), !data.isEmpty else { continue }
+                    if data.count > maxImageBytes { continue }
+                    total += data.count
+                    if total > maxImageBytes { break }
+                    let name = "\(fileIndex).bin"
+                    fileIndex += 1
+                    try data.write(to: dir.appendingPathComponent(name), options: .atomic)
+                    flavors.append(FlavorRecord(type: type.rawValue, file: name))
+                }
+                if !flavors.isEmpty {
+                    records.append(ItemRecord(flavors: flavors))
+                }
+            }
+            guard !records.isEmpty else {
+                try? FileManager.default.removeItem(at: dir)
+                return nil
+            }
+            try JSONEncoder().encode(records).write(to: dir.appendingPathComponent("manifest.json"), options: .atomic)
+            return id
+        } catch {
+            try? FileManager.default.removeItem(at: dir)
+            return nil
+        }
+    }
+
+    private static func firstAdvertisedImageData(_ pasteboard: NSPasteboard) -> Data? {
+        let advertised = Set((pasteboard.types ?? []).map(\.rawValue))
+        for type in itemImageTypes where advertised.contains(type.rawValue) {
+            if let data = pasteboard.data(forType: type), let png = pngData(fromRawImage: data) {
+                return png
+            }
+        }
+        return nil
+    }
+
+    private static var pasteArchivesDirectory: URL {
+        AppSupport.directory.appendingPathComponent("clipboard-pastes", isDirectory: true)
+    }
+
+    private func restorePasteArchive(_ id: String) -> Bool {
+        let dir = Self.pasteArchivesDirectory.appendingPathComponent(id, isDirectory: true)
+        guard let manifest = try? Data(contentsOf: dir.appendingPathComponent("manifest.json")),
+              let records = try? JSONDecoder().decode([ItemRecord].self, from: manifest),
+              !records.isEmpty else { return false }
+
+        var items: [NSPasteboardItem] = []
+        for record in records {
+            let item = NSPasteboardItem()
+            var wrote = false
+            for flavor in record.flavors {
+                guard let data = try? Data(contentsOf: dir.appendingPathComponent(flavor.file)),
+                      !data.isEmpty else { continue }
+                item.setData(data, forType: NSPasteboard.PasteboardType(flavor.type))
+                wrote = true
+            }
+            if wrote { items.append(item) }
+        }
+        guard !items.isEmpty else { return false }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        return pasteboard.writeObjects(items)
+    }
+
+    private func discardPasteArchive(_ id: String?) {
+        guard let id else { return }
+        try? FileManager.default.removeItem(at: Self.pasteArchivesDirectory.appendingPathComponent(id, isDirectory: true))
+    }
+
+    private enum ImagePayloadKind {
+        case image
+        case rtfd
+        case html
+        case webArchive
+    }
+
+    private struct ImagePayload {
+        var kind: ImagePayloadKind
+        var data: Data
+    }
+
+    /// Copy only representations the pasteboard already advertises.
+    /// Asking for missing types blocks on apps like Notes and freezes capture.
+    private static func snapshotImagePayloads(_ pasteboard: NSPasteboard) -> [ImagePayload] {
+        let advertised = Set((pasteboard.types ?? []).map(\.rawValue))
+        var payloads: [ImagePayload] = []
+
+        func take(_ type: NSPasteboard.PasteboardType, kind: ImagePayloadKind, from item: NSPasteboardItem? = nil) {
+            guard advertised.contains(type.rawValue) || item?.types.contains(type) == true else { return }
+            let data = item?.data(forType: type) ?? pasteboard.data(forType: type)
+            guard let data, !data.isEmpty, data.count <= maxImageBytes else { return }
+            payloads.append(ImagePayload(kind: kind, data: data))
+        }
+
+        for type in itemImageTypes {
+            take(type, kind: .image)
+        }
+        take(.rtfd, kind: .rtfd)
+        take(flatRTFDType, kind: .rtfd)
+        take(.html, kind: .html)
+        take(appleHTMLType, kind: .html)
+        take(webArchiveType, kind: .webArchive)
+
+        for item in pasteboard.pasteboardItems ?? [] {
+            let itemTypes = Set(item.types.map(\.rawValue))
+            for type in itemImageTypes where itemTypes.contains(type.rawValue) {
+                take(type, kind: .image, from: item)
+            }
+            if itemTypes.contains(NSPasteboard.PasteboardType.rtfd.rawValue) {
+                take(.rtfd, kind: .rtfd, from: item)
+            }
+            if itemTypes.contains(flatRTFDType.rawValue) {
+                take(flatRTFDType, kind: .rtfd, from: item)
+            }
+        }
+        return payloads
+    }
+
+    private static func pngs(from payload: ImagePayload) -> [Data] {
+        switch payload.kind {
+        case .image:
+            return pngData(fromRawImage: payload.data).map { [$0] } ?? []
+        case .rtfd:
+            return imagesFromRTFDData(payload.data)
+        case .html:
+            guard let html = String(data: payload.data, encoding: .utf8)
+                    ?? String(data: payload.data, encoding: .utf16)
+                    ?? String(data: payload.data, encoding: .isoLatin1) else { return [] }
+            return imagesReferenced(byHTML: html)
+        case .webArchive:
+            return imagesFromWebArchiveData(payload.data)
         }
     }
 
     /// Normalize whatever image is on the pasteboard to PNG data.
     private static func pngData(from pasteboard: NSPasteboard) -> Data? {
-        if let png = pasteboard.data(forType: .png) { return png }
-        guard let tiff = pasteboard.data(forType: .tiff),
+        for type in itemImageTypes {
+            if let data = pasteboard.data(forType: type),
+               let png = pngData(fromRawImage: data) {
+                return png
+            }
+        }
+        return nil
+    }
+
+    private static func pngData(from item: NSPasteboardItem) -> Data? {
+        for type in itemImageTypes {
+            if let data = item.data(forType: type),
+               let png = pngData(fromRawImage: data) {
+                return png
+            }
+        }
+        return nil
+    }
+
+    private static func pngData(from image: NSImage) -> Data? {
+        guard let tiff = image.tiffRepresentation,
               let rep = NSBitmapImageRep(data: tiff) else { return nil }
         return rep.representation(using: .png, properties: [:])
     }
 
-    private func rememberText(_ text: String, app: String?, bundleID: String?) {
-        if promoteExisting(hash: text.sha256, app: app, bundleID: bundleID) { return }
-        clippings.insert(Clipping(text: text, sourceApp: app, sourceBundleID: bundleID), at: 0)
+    private static func pngData(contentsOf url: URL) -> Data? {
+        let path = url.isFileURL ? url : URL(fileURLWithPath: url.path)
+        guard FileManager.default.fileExists(atPath: path.path),
+              let image = NSImage(contentsOf: path) else { return nil }
+        return pngData(from: image)
+    }
+
+    /// Unpack flat RTFD: attributed attachments AND the serialized FileWrapper tree
+    /// (Notes embeds pictures as sibling files next to TXT.rtf).
+    private static func imagesFromRTFDData(_ data: Data) -> [Data] {
+        var images: [Data] = []
+
+        if let attributed = try? NSAttributedString(
+            data: data,
+            options: [.documentType: NSAttributedString.DocumentType.rtfd],
+            documentAttributes: nil
+        ) {
+            images.append(contentsOf: imagesFromAttachments(in: attributed))
+        } else if let attributed = NSAttributedString(rtfd: data, documentAttributes: nil) {
+            images.append(contentsOf: imagesFromAttachments(in: attributed))
+        }
+
+        if let package = try? FileWrapper(serializedRepresentation: data) {
+            images.append(contentsOf: imagesFromFileWrapper(package))
+        }
+        return images
+    }
+
+    private static func imagesFromAttachments(in attributed: NSAttributedString) -> [Data] {
+        var images: [Data] = []
+        let full = NSRange(location: 0, length: attributed.length)
+        attributed.enumerateAttribute(.attachment, in: full) { value, _, _ in
+            guard let attachment = value as? NSTextAttachment else { return }
+            if let wrapper = attachment.fileWrapper {
+                images.append(contentsOf: imagesFromFileWrapper(wrapper))
+            }
+            if let image = attachment.image, let png = pngData(from: image) {
+                images.append(png)
+            }
+        }
+        return images
+    }
+
+    private static func imagesFromFileWrapper(_ wrapper: FileWrapper) -> [Data] {
+        var images: [Data] = []
+        let name = (wrapper.filename ?? wrapper.preferredFilename ?? "").lowercased()
+
+        if wrapper.isRegularFile, let data = wrapper.regularFileContents {
+            // Skip the RTF body; keep image payloads (png/jpeg/heic/…).
+            if !name.hasSuffix(".rtf"), let png = pngData(fromRawImage: data) {
+                images.append(png)
+            }
+        }
+        // fileWrappers raises if this wrapper is a file, not a directory.
+        if wrapper.isDirectory, let children = wrapper.fileWrappers {
+            for (_, child) in children {
+                images.append(contentsOf: imagesFromFileWrapper(child))
+            }
+        }
+        return images
+    }
+
+    private static let webArchiveType = NSPasteboard.PasteboardType("com.apple.webarchive")
+    private static let appleHTMLType = NSPasteboard.PasteboardType("Apple HTML pasteboard type")
+
+    private static func imagesReferenced(byHTML html: String) -> [Data] {
+        var images: [Data] = []
+        if let dataRegex = try? NSRegularExpression(
+            pattern: #"data:image\/[a-zA-Z0-9.+-]+;base64,([A-Za-z0-9+\/=\r\n]+)"#
+        ) {
+            let range = NSRange(html.startIndex..<html.endIndex, in: html)
+            dataRegex.enumerateMatches(in: html, range: range) { match, _, _ in
+                guard let match,
+                      let r = Range(match.range(at: 1), in: html),
+                      let raw = Data(base64Encoded: String(html[r]).filter { !$0.isWhitespace }),
+                      let png = pngData(fromRawImage: raw) else { return }
+                images.append(png)
+            }
+        }
+        if let srcRegex = try? NSRegularExpression(
+            pattern: #"<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["']"#,
+            options: [.caseInsensitive]
+        ) {
+            let range = NSRange(html.startIndex..<html.endIndex, in: html)
+            srcRegex.enumerateMatches(in: html, range: range) { match, _, _ in
+                guard let match, let r = Range(match.range(at: 1), in: html) else { return }
+                let src = String(html[r])
+                guard !src.hasPrefix("data:") else { return }
+                let url: URL?
+                if src.hasPrefix("file:") {
+                    url = URL(string: src)
+                } else if src.hasPrefix("/") {
+                    url = URL(fileURLWithPath: src)
+                } else {
+                    url = nil
+                }
+                if let url, let png = pngData(contentsOf: url) {
+                    images.append(png)
+                }
+            }
+        }
+        return images
+    }
+
+    private static func imagesFromWebArchiveData(_ data: Data) -> [Data] {
+        guard let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any]
+        else { return [] }
+
+        var images: [Data] = []
+        func walk(_ node: Any) {
+            if let dict = node as? [String: Any] {
+                if let mime = dict["WebResourceMIMEType"] as? String,
+                   mime.lowercased().hasPrefix("image/"),
+                   let blob = dict["WebResourceData"] as? Data,
+                   let png = pngData(fromRawImage: blob) {
+                    images.append(png)
+                }
+                if let html = dict["WebResourceData"] as? Data,
+                   let mime = dict["WebResourceMIMEType"] as? String,
+                   mime.lowercased().contains("html"),
+                   let text = String(data: html, encoding: .utf8) {
+                    images.append(contentsOf: imagesReferenced(byHTML: text))
+                }
+                for value in dict.values { walk(value) }
+            } else if let array = node as? [Any] {
+                array.forEach(walk)
+            }
+        }
+        walk(plist)
+        return images
+    }
+
+    private static func pngData(fromRawImage data: Data) -> Data? {
+        // Prefer NSImage so HEIC / JPEG / PNG from Notes all convert cleanly.
+        if let image = NSImage(data: data), let png = pngData(from: image) {
+            return png
+        }
+        if let rep = NSBitmapImageRep(data: data),
+           let png = rep.representation(using: .png, properties: [:]) {
+            return png
+        }
+        return nil
+    }
+
+    private func rememberText(_ text: String, app: String?, bundleID: String?, archiveID: String? = nil) {
+        if promoteExisting(hash: text.sha256, app: app, bundleID: bundleID) {
+            attachArchive(archiveID)
+            return
+        }
+        clippings.insert(Clipping(text: text, sourceApp: app, sourceBundleID: bundleID, pasteArchiveID: archiveID), at: 0)
         trimAndSave()
     }
 
-    private func rememberImage(_ pngData: Data, app: String?, bundleID: String?) {
+    private func rememberImage(_ pngData: Data, app: String?, bundleID: String?, archiveID: String? = nil) {
         guard pngData.count <= Self.maxImageBytes else { return }
         let hash = SHA256.hash(data: pngData).map { String(format: "%02x", $0) }.joined()
-        if promoteExisting(hash: hash, app: app, bundleID: bundleID) { return }
+        if promoteExisting(hash: hash, app: app, bundleID: bundleID) {
+            attachArchive(archiveID)
+            return
+        }
 
-        guard let rep = NSBitmapImageRep(data: pngData) else { return }
+        let pixelSize: CGSize
+        if let rep = NSBitmapImageRep(data: pngData) {
+            pixelSize = CGSize(width: rep.pixelsWide, height: rep.pixelsHigh)
+        } else if let image = NSImage(data: pngData) {
+            pixelSize = image.size
+        } else {
+            return
+        }
+
         let fileName = "\(UUID().uuidString).png"
         do {
             try FileManager.default.createDirectory(at: Self.imagesDirectory, withIntermediateDirectories: true)
@@ -314,14 +691,22 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
         } catch { return }
 
         let clipping = Clipping(imageFile: fileName,
-                                pixelSize: CGSize(width: rep.pixelsWide, height: rep.pixelsHigh),
+                                pixelSize: pixelSize,
                                 contentHash: hash,
-                                sourceApp: app, sourceBundleID: bundleID)
+                                sourceApp: app, sourceBundleID: bundleID,
+                                pasteArchiveID: archiveID)
         clippings.insert(clipping, at: 0)
         trimAndSave()
     }
 
-    /// Re-copied content moves to the top instead of duplicating.
+    /// Point the newest clipping at this paste archive, dropping the previous one.
+    private func attachArchive(_ archiveID: String?) {
+        guard let archiveID, !clippings.isEmpty else { return }
+        if clippings[0].pasteArchiveID == archiveID { return }
+        discardPasteArchive(clippings[0].pasteArchiveID)
+        clippings[0].pasteArchiveID = archiveID
+        save()
+    }
     private func promoteExisting(hash: String, app: String?, bundleID: String?) -> Bool {
         guard let index = clippings.firstIndex(where: { $0.contentHash == hash }) else { return false }
         var clipping = clippings.remove(at: index)
@@ -378,6 +763,7 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
     }
 
     private func removeImageFile(of clipping: Clipping) {
+        discardPasteArchive(clipping.pasteArchiveID)
         guard let file = clipping.imageFile else { return }
         imageCache.removeObject(forKey: file as NSString)
         // Keys are "file@size"; drop any thumbs for this file.
@@ -394,29 +780,33 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
     /// Put a clipping back on the pasteboard (and paste it if enabled).
     func pick(_ clipping: Clipping) {
         let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        switch clipping.kind {
-        case .text:
-            pasteboard.setString(clipping.text, forType: .string)
-        case .image:
-            // Offer the raster data AND the stored file (like Finder's copy),
-            // so image-aware apps paste the picture while terminals and file
-            // targets get a real file path.
-            let item = NSPasteboardItem()
-            if let file = clipping.imageFile {
-                let url = Self.imagesDirectory.appendingPathComponent(file)
-                if let png = try? Data(contentsOf: url) {
-                    item.setData(png, forType: .png)
-                    if let tiff = NSImage(data: png)?.tiffRepresentation {
-                        item.setData(tiff, forType: .tiff)
+        if let archiveID = clipping.pasteArchiveID, restorePasteArchive(archiveID) {
+            lastChangeCount = pasteboard.changeCount
+        } else {
+            pasteboard.clearContents()
+            switch clipping.kind {
+            case .text:
+                pasteboard.setString(clipping.text, forType: .string)
+            case .image:
+                // Offer the raster data AND the stored file (like Finder's copy),
+                // so image-aware apps paste the picture while terminals and file
+                // targets get a real file path.
+                let item = NSPasteboardItem()
+                if let file = clipping.imageFile {
+                    let url = Self.imagesDirectory.appendingPathComponent(file)
+                    if let png = try? Data(contentsOf: url) {
+                        item.setData(png, forType: .png)
+                        if let tiff = NSImage(data: png)?.tiffRepresentation {
+                            item.setData(tiff, forType: .tiff)
+                        }
                     }
+                    item.setString(url.absoluteString, forType: .fileURL)
+                    item.setString(url.path, forType: .string)
                 }
-                item.setString(url.absoluteString, forType: .fileURL)
-                item.setString(url.path, forType: .string)
+                pasteboard.writeObjects([item])
             }
-            pasteboard.writeObjects([item])
+            lastChangeCount = pasteboard.changeCount
         }
-        lastChangeCount = pasteboard.changeCount
         _ = promoteExisting(hash: clipping.contentHash,
                             app: clipping.sourceApp, bundleID: clipping.sourceBundleID)
 
@@ -716,6 +1106,7 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
     private func deleteHistoryFile() {
         try? FileManager.default.removeItem(at: Self.historyURL)
         try? FileManager.default.removeItem(at: Self.imagesDirectory)
+        try? FileManager.default.removeItem(at: Self.pasteArchivesDirectory)
         imageCache.removeAllObjects()
         thumbnailCache.removeAllObjects()
     }
