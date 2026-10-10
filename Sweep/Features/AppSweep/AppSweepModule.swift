@@ -27,10 +27,9 @@ final class AppSweepModule: ObservableObject, FeatureModule {
     let id = "app-sweep"
     let name = String(localized: "App Sweep")
     let summary = String(localized: "Hide every running app in one click, bring them all back with the next.")
-    /// Accessibility lets us also hide full-screen / split-view apps by taking
-    /// their windows out of full screen first. Without it, hiding still works
-    /// for normal windows.
-    let requiredPermissions: [PermissionKind] = [.accessibility]
+    /// Accessibility is optional: only used to exit full-screen / split-view
+    /// before hiding. Normal windows hide without it — never prompt for it.
+    let requiredPermissions: [PermissionKind] = []
 
     /// Hide keeps apps running (instant restore); Quit closes them politely
     /// (saves battery — apps with unsaved work get asked to save first).
@@ -97,12 +96,8 @@ final class AppSweepModule: ObservableObject, FeatureModule {
     }
 
     func activate() {
-        // Trigger the system Accessibility prompt the first time (FR-7: the
-        // explainer sheet has already run by the time we get here).
-        if !PermissionKind.accessibility.isGranted {
-            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-            AXIsProcessTrustedWithOptions(options)
-        }
+        // No system permission prompt. Full-screen handling uses Accessibility
+        // only if the user already granted it in System Settings.
     }
 
     func deactivate() {

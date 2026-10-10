@@ -2,6 +2,8 @@ import SwiftUI
 import AppKit
 import Carbon.HIToolbox
 import CryptoKit
+import ImageIO
+import UniformTypeIdentifiers
 
 extension Notification.Name {
     /// Posted when a view wants the menu bar panel closed (e.g. before a
@@ -115,7 +117,20 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
 
     @Published private(set) var clippings: [Clipping] = []
 
-    private let imageCache = NSCache<NSString, NSImage>()
+    /// Full-resolution images (paste / rare large previews). Keep this small.
+    private let imageCache: NSCache<NSString, NSImage> = {
+        let cache = NSCache<NSString, NSImage>()
+        cache.countLimit = 6
+        cache.totalCostLimit = 40 * 1024 * 1024
+        return cache
+    }()
+    /// Downsampled previews for the bezel and lists — avoids decoding 5K PNGs in SwiftUI.
+    private let thumbnailCache: NSCache<NSString, NSImage> = {
+        let cache = NSCache<NSString, NSImage>()
+        cache.countLimit = 48
+        cache.totalCostLimit = 24 * 1024 * 1024
+        return cache
+    }()
 
     // MARK: - Options (persisted)
 
@@ -140,11 +155,39 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
     @Published var bezelStyle: BezelStyle {
         didSet { UserDefaults.standard.set(bezelStyle.rawValue, forKey: "clipboard.bezelStyle") }
     }
+    /// While on, macOS screenshot shortcuts copy instead of writing Desktop files.
+    @Published var screenshotsToClipboardOnly: Bool {
+        didSet {
+            guard ready else { return }
+            UserDefaults.standard.set(screenshotsToClipboardOnly, forKey: Self.screenshotsOnlyKey)
+            reconcileScreenshotMode()
+        }
+    }
+    /// True when Cmd-Shift-5 Options overrode Sweep's clipboard target.
+    @Published private(set) var screenshotModeOverridden = false
+    /// Last folder chosen in Save… for image clippings.
+    @Published var lastSaveDirectory: URL? {
+        didSet {
+            guard ready else { return }
+            if let lastSaveDirectory {
+                UserDefaults.standard.set(lastSaveDirectory.path, forKey: Self.lastSaveFolderKey)
+            }
+        }
+    }
 
     static let historyLimitOptions = [10, 25, 50, 100]
 
+    private static let screenshotsOnlyKey = "clipboard.screenshotsToClipboardOnly"
+    private static let modeActiveKey = "clipboard.screenshotModeActive"
+    private static let previousTargetKey = "clipboard.previousScreenshotTarget"
+    private static let previousLocationKey = "clipboard.previousScreenshotLocation"
+    private static let lastSaveFolderKey = "clipboard.lastSaveFolder"
+    private static let screencaptureDomain = "com.apple.screencapture"
+
     private var timer: Timer?
     private var lastChangeCount = 0
+    /// Gates didSets until crash-safe restore has run.
+    private var ready = false
 
     private override init() {
         let defaults = UserDefaults.standard
@@ -153,7 +196,16 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
         rememberAcrossLaunches = defaults.object(forKey: "clipboard.remember") as? Bool ?? true
         pasteDirectly = defaults.bool(forKey: "clipboard.pasteDirectly")
         bezelStyle = BezelStyle(rawValue: defaults.string(forKey: "clipboard.bezelStyle") ?? "") ?? .refined
+        screenshotsToClipboardOnly = defaults.bool(forKey: Self.screenshotsOnlyKey)
+        if let path = defaults.string(forKey: Self.lastSaveFolderKey) {
+            lastSaveDirectory = URL(fileURLWithPath: path, isDirectory: true)
+        }
         super.init()
+        // Crash-safe: if we left the system in clipboard mode, restore first.
+        if defaults.bool(forKey: Self.modeActiveKey) {
+            restoreScreenshotDefaults(reloadUIServer: true)
+        }
+        ready = true
     }
 
     // MARK: - FeatureModule
@@ -165,26 +217,37 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
         // Don't re-capture whatever was on the pasteboard before enabling.
         lastChangeCount = NSPasteboard.general.changeCount
         let timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-            self?.captureIfChanged()
+            self?.tick()
         }
         timer.tolerance = 0.2
         self.timer = timer
+        reconcileScreenshotMode()
     }
 
     func deactivate() {
         timer?.invalidate()
         timer = nil
         ClipboardBezelController.shared.cancel()
+        releaseScreenshotMode()
         // Memory is released; the on-disk history (if kept) stays for re-enable.
         if !rememberAcrossLaunches { deleteHistoryFile() }
         clippings = []
         imageCache.removeAllObjects()
+        thumbnailCache.removeAllObjects()
     }
 
     func appWillTerminate() {
         timer?.invalidate()
         timer = nil
+        releaseScreenshotMode()
         if !rememberAcrossLaunches { deleteHistoryFile() }
+    }
+
+    private func tick() {
+        captureIfChanged()
+        if screenshotsToClipboardOnly {
+            enforceScreenshotTarget()
+        }
     }
 
     // MARK: - Capture
@@ -276,13 +339,42 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
         guard let file = clipping.imageFile else { return nil }
         if let cached = imageCache.object(forKey: file as NSString) { return cached }
         guard let image = NSImage(contentsOf: Self.imagesDirectory.appendingPathComponent(file)) else { return nil }
-        imageCache.setObject(image, forKey: file as NSString)
+        let cost = Int(image.size.width * image.size.height * 4)
+        imageCache.setObject(image, forKey: file as NSString, cost: cost)
+        return image
+    }
+
+    /// Bezel / list preview — decodes only a small thumbnail via ImageIO.
+    func thumbnail(for clipping: Clipping, maxPixel: CGFloat = 360) -> NSImage? {
+        guard let file = clipping.imageFile else { return nil }
+        let key = "\(file)@\(Int(maxPixel))" as NSString
+        if let cached = thumbnailCache.object(forKey: key) { return cached }
+        let url = Self.imagesDirectory.appendingPathComponent(file) as CFURL
+        guard let source = CGImageSourceCreateWithURL(url, nil) else { return nil }
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixel,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCacheImmediately: true,
+        ]
+        guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else {
+            return nil
+        }
+        let image = NSImage(cgImage: cgImage, size: NSSize(width: cgImage.width, height: cgImage.height))
+        let cost = cgImage.bytesPerRow * cgImage.height
+        thumbnailCache.setObject(image, forKey: key, cost: cost)
         return image
     }
 
     private func removeImageFile(of clipping: Clipping) {
         guard let file = clipping.imageFile else { return }
         imageCache.removeObject(forKey: file as NSString)
+        // Keys are "file@size"; drop any thumbs for this file.
+        // NSCache has no prefix API — clear thumbs only when history is wiped often enough;
+        // per-file we just remove the common sizes used by the UI.
+        for size in [96, 180, 360, 720, 900] as [Int] {
+            thumbnailCache.removeObject(forKey: "\(file)@\(size)" as NSString)
+        }
         try? FileManager.default.removeItem(at: Self.imagesDirectory.appendingPathComponent(file))
     }
 
@@ -320,7 +412,7 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
         if pasteDirectly && PermissionKind.accessibility.isGranted {
             // Close our panel first so the previous app is frontmost again.
             NotificationCenter.default.post(name: .sweepClosePanel, object: nil)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 Self.simulatePaste()
             }
         }
@@ -335,6 +427,228 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
     func clearHistory() {
         clippings = []
         deleteHistoryFile()
+    }
+
+    // MARK: - Save image clippings
+
+    /// Default Pictures/Screenshots folder (created on demand).
+    static var picturesScreenshotsDirectory: URL {
+        let pictures = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first
+            ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Pictures")
+        return pictures.appendingPathComponent("Screenshots", isDirectory: true)
+    }
+
+    /// Writes the image clipping to `directory` with a timestamped name.
+    @discardableResult
+    func save(_ clipping: Clipping, toDirectory directory: URL) throws -> URL {
+        guard clipping.kind == .image,
+              let file = clipping.imageFile else {
+            throw ClipboardSaveError.notAnImage
+        }
+        let source = Self.imagesDirectory.appendingPathComponent(file)
+        guard FileManager.default.fileExists(atPath: source.path) else {
+            throw ClipboardSaveError.missingFile
+        }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd 'at' HH.mm.ss"
+        let stamp = formatter.string(from: clipping.date)
+        var name = "Screenshot \(stamp).png"
+        var dest = directory.appendingPathComponent(name)
+        var suffix = 2
+        while FileManager.default.fileExists(atPath: dest.path) {
+            name = "Screenshot \(stamp) (\(suffix)).png"
+            dest = directory.appendingPathComponent(name)
+            suffix += 1
+        }
+        try FileManager.default.copyItem(at: source, to: dest)
+        lastSaveDirectory = directory
+        return dest
+    }
+
+    func saveToScreenshots(_ clipping: Clipping) throws -> URL {
+        try save(clipping, toDirectory: Self.picturesScreenshotsDirectory)
+    }
+
+    /// Opens a save panel for an image clipping. Returns the written URL, or nil if cancelled.
+    @MainActor
+    func saveAs(_ clipping: Clipping) throws -> URL? {
+        guard clipping.kind == .image,
+              let file = clipping.imageFile else {
+            throw ClipboardSaveError.notAnImage
+        }
+        let source = Self.imagesDirectory.appendingPathComponent(file)
+        guard FileManager.default.fileExists(atPath: source.path) else {
+            throw ClipboardSaveError.missingFile
+        }
+
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.png]
+        panel.canCreateDirectories = true
+        panel.isExtensionHidden = false
+        panel.nameFieldStringValue = "Screenshot \(clipping.date.formatted(date: .numeric, time: .shortened))"
+            .replacingOccurrences(of: "/", with: "-")
+            .replacingOccurrences(of: ":", with: ".")
+            + ".png"
+        if let lastSaveDirectory {
+            panel.directoryURL = lastSaveDirectory
+        } else {
+            panel.directoryURL = Self.picturesScreenshotsDirectory
+        }
+        guard panel.runModal() == .OK, let url = panel.url else { return nil }
+        if FileManager.default.fileExists(atPath: url.path) {
+            try FileManager.default.removeItem(at: url)
+        }
+        try FileManager.default.copyItem(at: source, to: url)
+        lastSaveDirectory = url.deletingLastPathComponent()
+        return url
+    }
+
+    enum ClipboardSaveError: LocalizedError {
+        case notAnImage
+        case missingFile
+
+        var errorDescription: String? {
+            switch self {
+            case .notAnImage: return String(localized: "Only images can be saved as files.")
+            case .missingFile: return String(localized: "That clipping’s image file is missing.")
+            }
+        }
+    }
+
+    // MARK: - Screenshots → clipboard mode
+
+    private var isScreenshotModeActive: Bool {
+        get { UserDefaults.standard.bool(forKey: Self.modeActiveKey) }
+        set { UserDefaults.standard.set(newValue, forKey: Self.modeActiveKey) }
+    }
+
+    private func reconcileScreenshotMode() {
+        if screenshotsToClipboardOnly {
+            applyScreenshotClipboardTarget()
+        } else {
+            releaseScreenshotMode()
+        }
+    }
+
+    private func releaseScreenshotMode() {
+        screenshotModeOverridden = false
+        guard isScreenshotModeActive else { return }
+        restoreScreenshotDefaults(reloadUIServer: true)
+    }
+
+    private func applyScreenshotClipboardTarget() {
+        let defaults = UserDefaults.standard
+        if !isScreenshotModeActive {
+            let current = Self.readScreencaptureDefaults()
+            defaults.set(current.target, forKey: Self.previousTargetKey)
+            if let location = current.location {
+                defaults.set(location, forKey: Self.previousLocationKey)
+            } else {
+                defaults.removeObject(forKey: Self.previousLocationKey)
+            }
+        }
+        // Official override: same key ⌘⇧5 → Options → Save to → Clipboard writes.
+        // When target is "clipboard", ⌘⇧3/4/5 never create a Desktop file —
+        // they only put the image on the pasteboard, which captureIfChanged
+        // already picks up into history. No file watching / deleting needed.
+        Self.writeScreencapture(target: "clipboard", location: nil)
+        Self.reloadScreenshotUI()
+        isScreenshotModeActive = true
+        screenshotModeOverridden = false
+    }
+
+    /// Detect when Cmd-Shift-5 Options overrode Sweep; Fix re-asserts.
+    private func enforceScreenshotTarget() {
+        guard isScreenshotModeActive else { return }
+        let current = Self.readScreencaptureDefaults()
+        let overridden = current.target != "clipboard"
+        if screenshotModeOverridden != overridden {
+            screenshotModeOverridden = overridden
+        }
+    }
+
+    /// Re-assert clipboard target after the user overrode it in Screenshot Options.
+    func reassertScreenshotClipboardTarget() {
+        guard screenshotsToClipboardOnly else { return }
+        applyScreenshotClipboardTarget()
+    }
+
+    private func restoreScreenshotDefaults(reloadUIServer: Bool) {
+        let defaults = UserDefaults.standard
+        let target = defaults.string(forKey: Self.previousTargetKey) ?? "file"
+        let location = defaults.string(forKey: Self.previousLocationKey)
+        Self.writeScreencapture(target: target, location: location)
+        if reloadUIServer { Self.reloadScreenshotUI() }
+        isScreenshotModeActive = false
+        screenshotModeOverridden = false
+        defaults.removeObject(forKey: Self.previousTargetKey)
+        defaults.removeObject(forKey: Self.previousLocationKey)
+    }
+
+    private static func readScreencaptureDefaults() -> (target: String, location: String?) {
+        // Read via `defaults` so we see the same values Screenshot.app writes.
+        let target = shellDefaults(read: "target") ?? "file"
+        let location = shellDefaults(read: "location")
+        return (target, location)
+    }
+
+    private static func shellDefaults(read key: String) -> String? {
+        let process = Process()
+        let pipe = Pipe()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/defaults")
+        process.arguments = ["read", screencaptureDomain, key]
+        process.standardOutput = pipe
+        process.standardError = Pipe()
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch { return nil }
+        guard process.terminationStatus == 0 else { return nil }
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let text = String(data: data, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return (text?.isEmpty == false) ? text : nil
+    }
+
+    private static func writeScreencapture(target: String, location: String?) {
+        // Same preference Screenshot Options writes for “Save to → Clipboard”.
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/defaults")
+        process.arguments = ["write", screencaptureDomain, "target", target]
+        try? process.run()
+        process.waitUntilExit()
+
+        if let prefs = UserDefaults(suiteName: screencaptureDomain) {
+            prefs.set(target, forKey: "target")
+            prefs.synchronize()
+        }
+        CFPreferencesAppSynchronize(screencaptureDomain as CFString)
+
+        if let location, !location.isEmpty {
+            let loc = Process()
+            loc.executableURL = URL(fileURLWithPath: "/usr/bin/defaults")
+            loc.arguments = ["write", screencaptureDomain, "location", location]
+            try? loc.run()
+            loc.waitUntilExit()
+            if let prefs = UserDefaults(suiteName: screencaptureDomain) {
+                prefs.set(location, forKey: "location")
+                prefs.synchronize()
+            }
+        }
+    }
+
+    private static func reloadScreenshotUI() {
+        // SystemUIServer alone is not always enough on recent macOS.
+        for name in ["SystemUIServer", "ControlCenter", "screencaptureui"] {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/killall")
+            process.arguments = [name]
+            process.standardError = Pipe()
+            try? process.run()
+            process.waitUntilExit()
+        }
     }
 
     /// Synthesize ⌘V so the clipping lands straight in the active app.
@@ -371,6 +685,7 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
         try? FileManager.default.removeItem(at: Self.historyURL)
         try? FileManager.default.removeItem(at: Self.imagesDirectory)
         imageCache.removeAllObjects()
+        thumbnailCache.removeAllObjects()
     }
 
     // MARK: - UI
@@ -428,11 +743,12 @@ struct ClipboardCard: View {
             }
         } label: {
             HStack(spacing: 6) {
-                if clipping.kind == .image, let image = module.image(for: clipping) {
+                if clipping.kind == .image, let image = module.thumbnail(for: clipping, maxPixel: 96) {
                     Image(nsImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 28, height: 18)
+                        .clipped()
                         .clipShape(RoundedRectangle(cornerRadius: 3))
                 }
                 Text(clipping.preview)
@@ -453,6 +769,21 @@ struct ClipboardCard: View {
         .buttonStyle(.plain)
         .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 5))
         .help(clipping.kind == .image ? clipping.preview : String(clipping.text.prefix(300)))
+        .contextMenu {
+            Button(String(localized: "Copy")) { module.pick(clipping) }
+            if clipping.kind == .image {
+                Button(String(localized: "Save…")) {
+                    _ = try? module.saveAs(clipping)
+                }
+                Button(String(localized: "Save to Screenshots")) {
+                    _ = try? module.saveToScreenshots(clipping)
+                }
+            }
+            Divider()
+            Button(String(localized: "Delete"), role: .destructive) {
+                module.delete(clipping)
+            }
+        }
     }
 }
 
@@ -534,6 +865,31 @@ struct ClipboardSettingsView: View {
                                     caption: String(localized: "The combo couldn't be registered — an app like Flycut is probably already using it. Quit that app and try again, or record a different combo.")) {
                             Button(String(localized: "Try Again")) {
                                 HotkeyManager.shared.retryFailedRegistrations()
+                            }
+                            .controlSize(.small)
+                        }
+                    }
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Screenshots").font(.headline)
+                SettingsCard {
+                    SettingsRow(icon: "camera.viewfinder",
+                                tint: .teal,
+                                title: String(localized: "Screenshots go to clipboard only"),
+                                caption: String(localized: "While on, ⌘⇧3 / ⌘⇧4 / ⌘⇧5 copy to the clipboard instead of saving to the Desktop. Right-click a shot in history to save it.")) {
+                        Toggle("", isOn: $module.screenshotsToClipboardOnly)
+                            .labelsHidden().toggleStyle(.switch).controlSize(.small)
+                    }
+                    if module.screenshotsToClipboardOnly && module.screenshotModeOverridden {
+                        CardDivider()
+                        SettingsRow(icon: "exclamationmark.triangle",
+                                    tint: .orange,
+                                    title: String(localized: "Screenshot Options changed the destination"),
+                                    caption: String(localized: "Cmd-Shift-5 Options overrode Sweep. Tap Fix to send screenshots to the clipboard again.")) {
+                            Button(String(localized: "Fix")) {
+                                module.reassertScreenshotClipboardTarget()
                             }
                             .controlSize(.small)
                         }

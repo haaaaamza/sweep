@@ -62,7 +62,7 @@ enum BezelStyle: String, CaseIterable, Identifiable {
         case .deck: return CGSize(width: 700, height: 360)
         case .filmstrip: return CGSize(width: 620, height: 310)
         case .list: return CGSize(width: 640, height: 360)
-        case .bottomBar: return CGSize(width: 880, height: 230)
+        case .bottomBar: return CGSize(width: 980, height: 250)
         case .pill: return CGSize(width: 560, height: 56)
         case .sidebar: return CGSize(width: 660, height: 340)
         case .grid: return CGSize(width: 560, height: 420)
@@ -124,7 +124,8 @@ final class ClipboardBezelController: ObservableObject {
     func advance(_ delta: Int) {
         let count = navigableCount
         guard count > 0 else { return }
-        index = ((index + delta) % count + count) % count
+        // Stop at the ends — no wrap back to the other side.
+        index = min(max(index + delta, 0), count - 1)
     }
 
     func select(_ newIndex: Int) {
@@ -148,9 +149,13 @@ final class ClipboardBezelController: ObservableObject {
         guard isVisible else { return }
         let module = ClipboardModule.shared
         let clipping = module.clippings.indices.contains(index) ? module.clippings[index] : nil
+        // Hide first and pick on the next turn so a heavy image pasteboard
+        // write can't keep the bezel on screen.
         hide()
         if let clipping {
-            module.pick(clipping)
+            DispatchQueue.main.async {
+                module.pick(clipping)
+            }
         }
     }
 
@@ -428,7 +433,7 @@ private struct BezelContent: View {
     var body: some View {
         switch clipping.kind {
         case .image:
-            if let image = module.image(for: clipping) {
+            if let image = module.thumbnail(for: clipping, maxPixel: compact ? 720 : 900) {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -473,7 +478,7 @@ private struct BezelThumb: View {
 
     var body: some View {
         Group {
-            if clipping.kind == .image, let image = module.image(for: clipping) {
+            if clipping.kind == .image, let image = module.thumbnail(for: clipping, maxPixel: 180) {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -488,6 +493,7 @@ private struct BezelThumb: View {
         }
         .frame(width: size.width, height: size.height)
         .background(.quaternary.opacity(0.5))
+        .clipped()
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .overlay(
             RoundedRectangle(cornerRadius: 6)
@@ -590,7 +596,7 @@ private struct ClassicBezelLayout: View {
                     .foregroundStyle(.secondary)
             }
             Group {
-                if clipping.kind == .image, let image = module.image(for: clipping) {
+                if clipping.kind == .image, let image = module.thumbnail(for: clipping, maxPixel: 900) {
                     Image(nsImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
@@ -772,11 +778,12 @@ private struct ListBezelLayout: View {
                 .foregroundStyle(.tertiary)
                 .monospacedDigit()
                 .frame(width: 14, alignment: .trailing)
-            if item.kind == .image, let image = module.image(for: item) {
+            if item.kind == .image, let image = module.thumbnail(for: item, maxPixel: 96) {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 22, height: 16)
+                    .clipped()
                     .clipShape(RoundedRectangle(cornerRadius: 4))
             }
             Text(item.preview)
@@ -804,21 +811,30 @@ private struct BottomBarBezelLayout: View {
     let clippings: [Clipping]
     let index: Int
 
+    private let cardCorner: CGFloat = 12
+    private let contentCorner: CGFloat = 6
+    private let cardSpacing: CGFloat = 12
+
     var body: some View {
         VStack(spacing: 10) {
-            HStack(alignment: .bottom, spacing: 12) {
-                ForEach(BezelUI.window(count: clippings.count, index: index, size: 5), id: \.self) { i in
-                    card(at: i)
-                        .onTapGesture { controller.select(i) }
+            GeometryReader { geo in
+                let visible = BezelUI.window(count: clippings.count, index: index, size: 5)
+                let raw = visible.map { idealCardSize(for: clippings[$0], selected: $0 == index) }
+                let widths = fittedWidths(raw.map(\.width), in: geo.size.width)
+                HStack(alignment: .bottom, spacing: cardSpacing) {
+                    ForEach(Array(visible.enumerated()), id: \.element) { offset, i in
+                        card(at: i, size: CGSize(width: widths[offset], height: raw[offset].height))
+                            .onTapGesture { controller.select(i) }
+                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             }
-            .frame(maxHeight: .infinity)
             BezelFooter(index: index, count: clippings.count)
         }
         .padding(16)
     }
 
-    private func card(at i: Int) -> some View {
+    private func card(at i: Int, size: CGSize) -> some View {
         let item = clippings[i]
         let selected = i == index
         return VStack(alignment: .leading, spacing: 5) {
@@ -835,12 +851,12 @@ private struct BottomBarBezelLayout: View {
                     .foregroundStyle(.tertiary)
             }
             Group {
-                if item.kind == .image, let image = module.image(for: item) {
+                if item.kind == .image, let image = module.thumbnail(for: item, maxPixel: 360) {
                     Image(nsImage: image)
                         .resizable()
-                        .aspectRatio(contentMode: .fill)
+                        .aspectRatio(contentMode: .fit)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                        .clipShape(RoundedRectangle(cornerRadius: contentCorner))
                 } else {
                     Text(item.text)
                         .font(.caption2)
@@ -848,17 +864,46 @@ private struct BottomBarBezelLayout: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipped()
         }
         .padding(9)
-        .frame(width: 160, height: selected ? 146 : 134)
-        .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 12))
+        .frame(width: size.width, height: size.height, alignment: .top)
+        .background(.quaternary.opacity(0.4))
+        .clipShape(RoundedRectangle(cornerRadius: cardCorner))
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: cardCorner)
                 .strokeBorder(selected ? Color.accentColor : .white.opacity(0.12),
                               lineWidth: selected ? 2 : 1)
         )
         .opacity(selected ? 1 : 0.7)
         .offset(y: selected ? -5 : 0)
+    }
+
+    /// Ideal silhouette follows the image’s aspect ratio so the selection
+    /// border maps to a wide/tall shot instead of a fixed square.
+    private func idealCardSize(for item: Clipping, selected: Bool) -> CGSize {
+        let height: CGFloat = selected ? 156 : 142
+        let pad: CGFloat = 18
+        let header: CGFloat = 18
+        let contentHeight = max(1, height - pad - header)
+        if item.kind == .image, let pixels = item.imagePixelSize, pixels.height > 0 {
+            let aspect = pixels.width / pixels.height
+            let contentWidth = contentHeight * aspect
+            let width = min(280, max(108, contentWidth + pad))
+            return CGSize(width: width, height: height)
+        }
+        return CGSize(width: 160, height: height)
+    }
+
+    /// Shrink proportionally if the row would overflow the panel.
+    private func fittedWidths(_ widths: [CGFloat], in available: CGFloat) -> [CGFloat] {
+        guard !widths.isEmpty else { return widths }
+        let gaps = cardSpacing * CGFloat(widths.count - 1)
+        let total = widths.reduce(0, +) + gaps
+        guard total > available, total > 0 else { return widths }
+        let scale = (available - gaps) / (total - gaps)
+        return widths.map { max(88, $0 * scale) }
     }
 }
 
@@ -882,11 +927,12 @@ private struct PillBezelLayout: View {
             Image(nsImage: BezelUI.sourceIcon(for: clipping))
                 .resizable()
                 .frame(width: 20, height: 20)
-            if clipping.kind == .image, let image = module.image(for: clipping) {
+            if clipping.kind == .image, let image = module.thumbnail(for: clipping, maxPixel: 120) {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 42, height: 28)
+                    .clipped()
                     .clipShape(RoundedRectangle(cornerRadius: 5))
                 Text(clipping.preview)
                     .font(.callout.weight(.medium))
@@ -1020,7 +1066,7 @@ private struct GridBezelLayout: View {
     private func cell(_ item: Clipping, number: Int, selected: Bool) -> some View {
         ZStack(alignment: .topLeading) {
             Group {
-                if item.kind == .image, let image = module.image(for: item) {
+                if item.kind == .image, let image = module.thumbnail(for: item, maxPixel: 360) {
                     Image(nsImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -1044,6 +1090,7 @@ private struct GridBezelLayout: View {
         .frame(height: 100)
         .frame(maxWidth: .infinity)
         .background(.quaternary.opacity(0.45))
+        .clipped()
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(
             RoundedRectangle(cornerRadius: 10)

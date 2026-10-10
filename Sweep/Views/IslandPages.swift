@@ -226,6 +226,7 @@ struct IslandClipboardPage: View {
     @ObservedObject var module = ClipboardModule.shared
     @ObservedObject var hotkeys = HotkeyManager.shared
     @State private var pickedID: UUID?
+    @State private var saveMessage: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -255,10 +256,45 @@ struct IslandClipboardPage: View {
                 }
             }
 
+            HStack(spacing: 8) {
+                Toggle(isOn: $module.screenshotsToClipboardOnly) {
+                    Text(String(localized: "Clipboard-only shots"))
+                        .font(.system(size: 11, weight: .semibold))
+                }
+                .toggleStyle(.switch)
+                .controlSize(.mini)
+                .tint(.teal)
+                if module.screenshotsToClipboardOnly && module.screenshotModeOverridden {
+                    Button(String(localized: "Fix")) {
+                        module.reassertScreenshotClipboardTarget()
+                    }
+                    .font(.system(size: 10, weight: .bold))
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.orange)
+                }
+            }
+            .foregroundStyle(.secondary)
+
+            if module.screenshotsToClipboardOnly {
+                Text(module.screenshotModeOverridden
+                      ? String(localized: "Screenshot Options changed the destination.")
+                      : String(localized: "⌘⇧4 copies only — right-click an image to save."))
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(module.screenshotModeOverridden ? Color.orange : .secondary)
+            }
+
+            if let saveMessage {
+                Text(saveMessage)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.orange)
+            }
+
             if module.clippings.isEmpty {
                 islandEmptyState(icon: "doc.on.clipboard",
                                  title: String(localized: "Nothing copied yet"),
-                                 caption: String(localized: "Everything you copy appears here."))
+                                 caption: module.screenshotsToClipboardOnly
+                                    ? String(localized: "Take a screenshot — it stays on the clipboard and shows up here.")
+                                    : String(localized: "Everything you copy appears here."))
             } else {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 6) {
@@ -303,14 +339,63 @@ struct IslandClipboardPage: View {
             .padding(.horizontal, 10).padding(.vertical, 7)
             .background(.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        }.buttonStyle(.plain)
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button(String(localized: "Copy")) {
+                module.pick(clipping)
+            }
+            if clipping.kind == .image {
+                Button(String(localized: "Save…")) {
+                    saveAs(clipping)
+                }
+                Button(String(localized: "Save to Screenshots")) {
+                    saveToScreenshots(clipping)
+                }
+            }
+            Divider()
+            Button(String(localized: "Delete"), role: .destructive) {
+                module.delete(clipping)
+            }
+        }
+    }
+
+    private func saveAs(_ clipping: Clipping) {
+        onCollapse()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            do {
+                if let url = try module.saveAs(clipping) {
+                    saveMessage = String(localized: "Saved to \(url.lastPathComponent)")
+                }
+            } catch {
+                saveMessage = error.localizedDescription
+            }
+            clearSaveMessageLater()
+        }
+    }
+
+    private func saveToScreenshots(_ clipping: Clipping) {
+        do {
+            let url = try module.saveToScreenshots(clipping)
+            saveMessage = String(localized: "Saved to \(url.lastPathComponent)")
+        } catch {
+            saveMessage = error.localizedDescription
+        }
+        clearSaveMessageLater()
+    }
+
+    private func clearSaveMessageLater() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            saveMessage = nil
+        }
     }
 
     @ViewBuilder
     private func thumbnail(_ clipping: Clipping) -> some View {
-        if clipping.kind == .image, let image = module.image(for: clipping) {
+        if clipping.kind == .image, let image = module.thumbnail(for: clipping, maxPixel: 96) {
             Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
                 .frame(width: 26, height: 26)
+                .clipped()
                 .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
         } else {
             Image(systemName: clipping.kind == .image ? "photo" : "text.alignleft")
