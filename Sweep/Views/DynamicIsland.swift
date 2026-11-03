@@ -212,6 +212,7 @@ final class DynamicIslandController: ObservableObject {
         didSet {
             guard oldValue != isExpanded else { return }
             if isExpanded { clearPulse() }
+            applyFrame()
             NotificationCenter.default.post(
                 name: isExpanded ? .sweepPanelDidOpen : .sweepPanelDidClose, object: nil)
         }
@@ -223,18 +224,30 @@ final class DynamicIslandController: ObservableObject {
     /// Natural size of the whole hub, including the satellite buttons.
     private(set) var expandedWindowSize: CGSize?
 
+    /// True while the pointer is over the island window. SwiftUI hover does not
+    /// fire on this panel until it has been clicked, because the panel never
+    /// becomes key.
+    @Published private(set) var isPointerInside = false
+
     private var panel: NSPanel?
-    private var hosting: NSHostingController<IslandRootView>?
+    private var hosting: FlushHostingView<IslandRootView>?
     private var observers: [NSObjectProtocol] = []
     private var pulseDismissTask: Task<Void, Never>?
+    private var hoverTask: Task<Void, Never>?
+    private var hoverPoll: Timer?
+    /// Set false by the close button so the poll does not reopen while the
+    /// pointer is still sitting on the island. Armed again once it leaves.
+    private var hoverOpenArmed = true
 
     func setVisible(_ visible: Bool) {
         if visible {
             if panel == nil { build() }
             applyFrame()
             panel?.orderFrontRegardless()
+            startHoverWatch()
             SystemPowerMonitor.shared.start()
         } else {
+            stopHoverWatch()
             clearPulse()
             SystemPowerMonitor.shared.stop()
             if isExpanded { isExpanded = false }
@@ -242,8 +255,79 @@ final class DynamicIslandController: ObservableObject {
         }
     }
 
+    /// Open from a click on the closed notch. Marks the pointer as inside so
+    /// a missed hover event cannot close it again immediately.
+    func openFromPointer() {
+        hoverOpenArmed = true
+        isPointerInside = true
+        guard !isExpanded else { return }
+        withAnimation(StandardAnimations.interactive) {
+            isExpanded = true
+        }
+    }
+
+    /// Hover entered or left. Ignored exits while the cursor is still inside
+    /// the window — resizing the panel on open sends a false leave.
+    func pointerHoverChanged(_ hovering: Bool) {
+        if !hovering && containsPointer() { return }
+        if !hovering { hoverOpenArmed = true }
+        if hovering && !hoverOpenArmed { return }
+        guard hovering != isPointerInside else { return }
+        isPointerInside = hovering
+        hoverTask?.cancel()
+        if hovering {
+            guard !isExpanded else { return }
+            hoverTask = Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(100))
+                guard !Task.isCancelled, !self.isExpanded, self.isPointerInside else { return }
+                withAnimation(StandardAnimations.interactive) {
+                    self.isExpanded = true
+                }
+            }
+        } else {
+            hoverTask = Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(350))
+                guard !Task.isCancelled, !self.isPointerInside else { return }
+                if self.containsPointer() {
+                    self.isPointerInside = true
+                    return
+                }
+                withAnimation(StandardAnimations.interactive) {
+                    self.isExpanded = false
+                }
+            }
+        }
+    }
+
+    /// SwiftUI's hover tracking stays silent on a non-key panel. A short poll
+    /// notices the cursor sitting on the notch even when mouse-enter never arrives.
+    private func startHoverWatch() {
+        guard hoverPoll == nil else { return }
+        let timer = Timer(timeInterval: 0.12, repeats: true) { [weak self] _ in
+            self?.notePointerLocation()
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        hoverPoll = timer
+        notePointerLocation()
+    }
+
+    private func stopHoverWatch() {
+        hoverPoll?.invalidate()
+        hoverPoll = nil
+        hoverTask?.cancel()
+        hoverTask = nil
+        isPointerInside = false
+    }
+
+    private func notePointerLocation() {
+        pointerHoverChanged(containsPointer())
+    }
+
     func collapse() {
         guard isExpanded else { return }
+        hoverOpenArmed = false
+        isPointerInside = false
+        hoverTask?.cancel()
         isExpanded = false
     }
 
@@ -254,6 +338,7 @@ final class DynamicIslandController: ObservableObject {
         guard !isExpanded else { return }
         pulseDismissTask?.cancel()
         activePulse = pulse
+        applyFrame()
         let id = pulse.id
         let duration = pulse.duration
         pulseDismissTask = Task { @MainActor in
@@ -261,6 +346,7 @@ final class DynamicIslandController: ObservableObject {
             guard !Task.isCancelled else { return }
             if activePulse?.id == id {
                 activePulse = nil
+                applyFrame()
             }
         }
     }
@@ -269,6 +355,7 @@ final class DynamicIslandController: ObservableObject {
         pulseDismissTask?.cancel()
         pulseDismissTask = nil
         if activePulse != nil { activePulse = nil }
+        applyFrame()
     }
 
     func containsPointer() -> Bool {
@@ -284,22 +371,39 @@ final class DynamicIslandController: ObservableObject {
             return
         }
         expandedWindowSize = size
-        applyFrame()
+        scheduleFrame()
+    }
+
+    /// setFrame during a SwiftUI layout pass re-enters layout and beachballs.
+    private var frameTicket = 0
+    private func scheduleFrame() {
+        frameTicket += 1
+        let ticket = frameTicket
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.frameTicket == ticket else { return }
+            self.applyFrame()
+        }
     }
 
     private func build() {
-        let hosting = NSHostingController(rootView: IslandRootView(island: self, registry: .shared))
+        let hosting = FlushHostingView(rootView: IslandRootView(island: self, registry: .shared))
+        // The screen notch is a safe-area inset. Leaving it on pushes the
+        // black bar down below the camera, so the pointer never hits it.
+        hosting.safeAreaRegions = []
         hosting.sizingOptions = []
-        hosting.view.translatesAutoresizingMaskIntoConstraints = false
+        hosting.translatesAutoresizingMaskIntoConstraints = false
         self.hosting = hosting
 
         let container = IslandPassThroughView()
-        container.addSubview(hosting.view)
+        container.onHoverChanged = { [weak self] hovering in
+            self?.pointerHoverChanged(hovering)
+        }
+        container.addSubview(hosting)
         NSLayoutConstraint.activate([
-            hosting.view.topAnchor.constraint(equalTo: container.topAnchor),
-            hosting.view.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-            hosting.view.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            hosting.view.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            hosting.topAnchor.constraint(equalTo: container.topAnchor),
+            hosting.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            hosting.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            hosting.trailingAnchor.constraint(equalTo: container.trailingAnchor),
         ])
 
         let panel = NSPanel(contentRect: NSRect(origin: .zero, size: reservedWindowSize()),
@@ -326,8 +430,9 @@ final class DynamicIslandController: ObservableObject {
         applyFrame()
     }
 
-    /// The window stays the full open size, like NotchAnimationDemo. The black
-    /// notch springs inside it, so the window edge never cuts the shape.
+    /// Top of the window is always the top of the screen. Closed, the window
+    /// is only the notch strip — a tall invisible window was letting the bar
+    /// drift down and stealing the pointer (spinning cursor, then a jump).
     private func applyFrame() {
         guard let panel, let screen = targetScreen else { return }
         let size = reservedWindowSize()
@@ -338,15 +443,22 @@ final class DynamicIslandController: ObservableObject {
                            height: max(size.height, 1))
         guard panel.frame != frame else { return }
         panel.setFrame(frame, display: true)
+        panel.contentView?.updateTrackingAreas()
     }
 
     /// Open canvas: the hub, the closed strip the demo keeps above it, the
-    /// open padding, and the shadow margin.
+    /// open padding, and the shadow margin. Closed: just the notch.
     private func reservedWindowSize() -> CGSize {
+        let closed = collapsedSize
+        let pulseExtra: CGFloat = activePulse == nil ? 0 : 108 * 2
+        let closedWidth = closed.width + pulseExtra + 36
+        let closedHeight = closed.height + 16
+        guard isExpanded else {
+            return CGSize(width: closedWidth, height: closedHeight)
+        }
         let hub = expandedWindowSize ?? CGSize(
             width: IslandPrefs.shared.expandedWidth + 108,
             height: IslandPrefs.shared.contentHeight + 180)
-        let closed = collapsedSize
         let side = islandCornerRadiusInsets.opened.top + 12
         return CGSize(width: max(hub.width, closed.width) + side * 2,
                       height: hub.height + closed.height + 12 + 8 + islandShadowPadding)
@@ -374,8 +486,39 @@ final class DynamicIslandController: ObservableObject {
     }
 }
 
+/// Hosting view that does not inherit the screen-notch safe area. That inset
+/// was dropping the closed bar below the camera.
+private final class FlushHostingView<Content: View>: NSHostingView<Content> {
+    override var safeAreaInsets: NSEdgeInsets { NSEdgeInsets() }
+}
+
 /// Clicks in the clear part of the reserved window fall through to the desktop.
+/// Tracking stays active when Sweep is not the front app, which is when
+/// SwiftUI hover goes quiet until the first click.
 private final class IslandPassThroughView: NSView {
+    var onHoverChanged: ((Bool) -> Void)?
+    private var tracking: NSTrackingArea?
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let tracking { removeTrackingArea(tracking) }
+        let area = NSTrackingArea(
+            rect: bounds,
+            options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+            owner: self,
+            userInfo: nil)
+        addTrackingArea(area)
+        tracking = area
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        onHoverChanged?(true)
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        onHoverChanged?(false)
+    }
+
     override func hitTest(_ point: NSPoint) -> NSView? {
         let hit = super.hitTest(point)
         return hit == self ? nil : hit
@@ -422,27 +565,23 @@ private struct NotchShape: Shape {
 
 // MARK: - Hub shape
 
-/// The expanded hub's silhouette: full-width at the very top so it blends into
-/// the menu bar, then the sides scoop inward (the classic notch flare) and the
-/// bottom corners get a big continuous radius.
+/// The expanded hub's silhouette: a hard edge at the top of the screen, then
+/// large continuous radii on the bottom corners.
 struct NotchHubShape: Shape {
-    var flare: CGFloat = 14
     var bottomRadius: CGFloat = 26
 
     func path(in rect: CGRect) -> Path {
         var p = Path()
+        let radius = min(bottomRadius, rect.width / 2, max(rect.height / 2, 0))
+        // Square top, flush with the screen. Only the bottom corners round.
         p.move(to: CGPoint(x: rect.minX, y: rect.minY))
-        p.addQuadCurve(to: CGPoint(x: rect.minX + flare, y: rect.minY + flare),
-                       control: CGPoint(x: rect.minX + flare, y: rect.minY))
-        p.addLine(to: CGPoint(x: rect.minX + flare, y: rect.maxY - bottomRadius))
-        p.addQuadCurve(to: CGPoint(x: rect.minX + flare + bottomRadius, y: rect.maxY),
-                       control: CGPoint(x: rect.minX + flare, y: rect.maxY))
-        p.addLine(to: CGPoint(x: rect.maxX - flare - bottomRadius, y: rect.maxY))
-        p.addQuadCurve(to: CGPoint(x: rect.maxX - flare, y: rect.maxY - bottomRadius),
-                       control: CGPoint(x: rect.maxX - flare, y: rect.maxY))
-        p.addLine(to: CGPoint(x: rect.maxX - flare, y: rect.minY + flare))
-        p.addQuadCurve(to: CGPoint(x: rect.maxX, y: rect.minY),
-                       control: CGPoint(x: rect.maxX - flare, y: rect.minY))
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - radius))
+        p.addQuadCurve(to: CGPoint(x: rect.maxX - radius, y: rect.maxY),
+                       control: CGPoint(x: rect.maxX, y: rect.maxY))
+        p.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY))
+        p.addQuadCurve(to: CGPoint(x: rect.minX, y: rect.maxY - radius),
+                       control: CGPoint(x: rect.minX, y: rect.maxY))
         p.closeSubpath()
         return p
     }
@@ -516,12 +655,6 @@ struct IslandRootView: View {
     @ObservedObject var coordinator = SweepCoordinator.shared
     @ObservedObject var apps = AppSweepModule.shared
 
-    @State private var hoverTask: Task<Void, Never>?
-    @State private var isHovering = false
-
-    /// Delay before the open notch closes after the pointer leaves.
-    private let hoverExitDelayMilliseconds = 350
-
     private var openedInsets: (top: CGFloat, bottom: CGFloat) { islandCornerRadiusInsets.opened }
 
     private var topCornerRadius: CGFloat {
@@ -568,24 +701,23 @@ struct IslandRootView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            Color.clear.allowsHitTesting(false)
-            VStack(spacing: 0) {
-                notchLayout
-                    .frame(height: island.isExpanded ? openFrameHeight : nil, alignment: .top)
-                    .animation(
-                        island.isExpanded ? StandardAnimations.open : StandardAnimations.close,
-                        value: island.isExpanded
-                    )
-                    .animation(StandardAnimations.open, value: island.activePulse?.id)
-                    .contentShape(Rectangle())
-                    .onHover { handleHover($0) }
-                    .onTapGesture {
-                        if !island.isExpanded { doOpen() }
-                    }
-            }
+        VStack(spacing: 0) {
+            notchLayout
+                .frame(height: island.isExpanded ? openFrameHeight : nil, alignment: .top)
+                .animation(
+                    island.isExpanded ? StandardAnimations.open : StandardAnimations.close,
+                    value: island.isExpanded
+                )
+                .animation(StandardAnimations.open, value: island.activePulse?.id)
+                .contentShape(Rectangle())
+                .onHover { island.pointerHoverChanged($0) }
+                .onTapGesture {
+                    if !island.isExpanded { island.openFromPointer() }
+                }
+            Spacer(minLength: 0)
+                .allowsHitTesting(false)
         }
-        .padding(.bottom, 8)
+        .padding(.bottom, island.isExpanded ? 8 : 0)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .ignoresSafeArea()
         .compositingGroup()
@@ -649,7 +781,7 @@ struct IslandRootView: View {
                     .padding(.horizontal, topCornerRadius)
         }
         .shadow(
-            color: (isHovering || island.activePulse != nil) ? .black.opacity(0.7) : .clear,
+            color: (island.isPointerInside || island.activePulse != nil) ? .black.opacity(0.7) : .clear,
             radius: 6
         )
     }
@@ -690,47 +822,6 @@ struct IslandRootView: View {
         }
         .frame(width: closedContentWidth, height: displayClosedNotchHeight)
         .transition(.opacity.combined(with: .scale(scale: 0.92, anchor: .center)))
-    }
-
-    @discardableResult
-    private func doOpen() -> Bool {
-        guard !island.isExpanded else { return false }
-        withAnimation(StandardAnimations.interactive) {
-            island.isExpanded = true
-        }
-        return true
-    }
-
-    private func handleHover(_ hovering: Bool) {
-        hoverTask?.cancel()
-
-        if hovering {
-            withAnimation(StandardAnimations.interactive) {
-                isHovering = true
-            }
-            guard !island.isExpanded else { return }
-            hoverTask = Task {
-                try? await Task.sleep(for: .milliseconds(100))
-                guard !Task.isCancelled else { return }
-                await MainActor.run {
-                    guard !self.island.isExpanded, self.isHovering else { return }
-                    self.doOpen()
-                }
-            }
-        } else {
-            hoverTask = Task {
-                try? await Task.sleep(for: .milliseconds(hoverExitDelayMilliseconds))
-                guard !Task.isCancelled else { return }
-                await MainActor.run {
-                    withAnimation(StandardAnimations.interactive) {
-                        self.isHovering = false
-                    }
-                    if self.island.isExpanded {
-                        self.island.isExpanded = false
-                    }
-                }
-            }
-        }
     }
 
     private var closedStatus: some View {
@@ -818,7 +909,7 @@ struct IslandHubView: View {
     // MARK: Panel
 
     private var openPanel: some View {
-        let shape = NotchHubShape(flare: island.hasNotch ? flare : 6, bottomRadius: 26)
+        let shape = NotchHubShape(bottomRadius: 26)
         return VStack(spacing: 0) {
             Color.clear.frame(height: max(island.collapsedSize.height, 1))
             VStack(spacing: 10) {

@@ -25,7 +25,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "wind", accessibilityDescription: "Sweep")
+            button.image = statusImage(swept: false)
             button.target = self
             button.action = #selector(statusItemClicked(_:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
@@ -126,9 +126,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     }
 
     private func updateStatusIcon(swept: Bool) {
-        statusItem?.button?.image = NSImage(
-            systemSymbolName: swept ? "wind.circle.fill" : "wind",
-            accessibilityDescription: "Sweep")
+        statusItem?.button?.image = statusImage(swept: swept)
+    }
+
+    /// The same sweep mark as the app icon, as a menu-bar template.
+    /// A dot in the corner means the desktop is currently swept.
+    private func statusImage(swept: Bool) -> NSImage {
+        let fallback = NSImage(systemSymbolName: swept ? "wind.circle.fill" : "wind",
+                               accessibilityDescription: "Sweep")
+        guard let base = NSImage(named: "MenuBarIcon") else { return fallback ?? NSImage() }
+        base.isTemplate = true
+        base.accessibilityDescription = "Sweep"
+        guard swept else { return base }
+        let size = base.size
+        let image = NSImage(size: size, flipped: false) { rect in
+            base.draw(in: rect)
+            let diameter = max(3.5, rect.width * 0.22)
+            let dot = NSBezierPath(ovalIn: NSRect(x: rect.maxX - diameter,
+                                                   y: rect.maxY - diameter,
+                                                   width: diameter,
+                                                   height: diameter))
+            NSColor.black.setFill()
+            dot.fill()
+            return true
+        }
+        image.isTemplate = true
+        image.accessibilityDescription = "Sweep"
+        return image
     }
 
     // MARK: - Status item
