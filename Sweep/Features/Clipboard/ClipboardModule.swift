@@ -357,7 +357,9 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
         // A screenshot is png/tiff plus maybe a filename. Store the picture.
         // Notes articles are rich text and stay on the path below.
         if !Self.hasRichDocument(typeNames), let png = Self.firstAdvertisedImageData(pasteboard) {
-            rememberImage(png, app: app, bundleID: bundleID, archiveID: archiveID)
+            if let file = rememberImage(png, app: app, bundleID: bundleID, archiveID: archiveID) {
+                enrichLivePasteboardWithImagePath(imageFile: file)
+            }
             return
         }
 
@@ -373,7 +375,9 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
         }
 
         if let png = Self.firstAdvertisedImageData(pasteboard) {
-            rememberImage(png, app: app, bundleID: bundleID, archiveID: archiveID)
+            if let file = rememberImage(png, app: app, bundleID: bundleID, archiveID: archiveID) {
+                enrichLivePasteboardWithImagePath(imageFile: file)
+            }
             return
         }
 
@@ -744,12 +748,15 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
         trimAndSave()
     }
 
-    private func rememberImage(_ pngData: Data, app: String?, bundleID: String?, archiveID: String? = nil) {
-        guard pngData.count <= Self.maxImageBytes else { return }
+    /// Returns the stored PNG file name of the resulting newest clipping, or
+    /// nil if nothing was stored (too large / undecodable).
+    @discardableResult
+    private func rememberImage(_ pngData: Data, app: String?, bundleID: String?, archiveID: String? = nil) -> String? {
+        guard pngData.count <= Self.maxImageBytes else { return nil }
         let hash = SHA256.hash(data: pngData).map { String(format: "%02x", $0) }.joined()
         if promoteExisting(hash: hash, app: app, bundleID: bundleID) {
             attachArchive(archiveID)
-            return
+            return clippings.first?.imageFile
         }
 
         let pixelSize: CGSize
@@ -758,14 +765,14 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
         } else if let image = NSImage(data: pngData) {
             pixelSize = image.size
         } else {
-            return
+            return nil
         }
 
         let fileName = "\(UUID().uuidString).png"
         do {
             try FileManager.default.createDirectory(at: Self.imagesDirectory, withIntermediateDirectories: true)
             try pngData.write(to: Self.imagesDirectory.appendingPathComponent(fileName), options: .atomic)
-        } catch { return }
+        } catch { return nil }
 
         let clipping = Clipping(imageFile: fileName,
                                 pixelSize: pixelSize,
@@ -774,6 +781,7 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
                                 pasteArchiveID: archiveID)
         clippings.insert(clipping, at: 0)
         trimAndSave()
+        return fileName
     }
 
     /// Point the newest clipping at this paste archive, dropping the previous one.
@@ -1023,30 +1031,27 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
     /// Put a clipping back on the pasteboard (and paste it if enabled).
     func pick(_ clipping: Clipping) {
         let pasteboard = NSPasteboard.general
-        if let archiveID = clipping.pasteArchiveID, restorePasteArchive(archiveID) {
-            lastChangeCount = pasteboard.changeCount
-        } else {
-            pasteboard.clearContents()
-            switch clipping.kind {
-            case .text:
+        switch clipping.kind {
+        case .text:
+            // Rich text/Notes copies restore every original flavor (RTFD, HTML,
+            // embedded images, …) from the saved archive when we have one.
+            if let archiveID = clipping.pasteArchiveID, restorePasteArchive(archiveID) {
+                lastChangeCount = pasteboard.changeCount
+            } else {
+                pasteboard.clearContents()
                 pasteboard.setString(clipping.text, forType: .string)
-            case .image:
-                // Offer the raster data AND the stored file (like Finder's copy),
-                // so image-aware apps paste the picture while terminals and file
-                // targets get a real file path.
-                let item = NSPasteboardItem()
-                if let file = clipping.imageFile {
-                    let url = Self.imagesDirectory.appendingPathComponent(file)
-                    if let png = try? Data(contentsOf: url) {
-                        item.setData(png, forType: .png)
-                        if let tiff = NSImage(data: png)?.tiffRepresentation {
-                            item.setData(tiff, forType: .tiff)
-                        }
-                    }
-                    item.setString(url.absoluteString, forType: .fileURL)
-                    item.setString(url.path, forType: .string)
-                }
-                pasteboard.writeObjects([item])
+                lastChangeCount = pasteboard.changeCount
+            }
+        case .image:
+            // Always offer the raster data AND the stored file (like Finder's
+            // copy), so image-aware apps paste the picture while terminals and
+            // file targets get a real file path. An image's paste archive only
+            // holds png/tiff, so restoring it would strip the path — leaving
+            // targets like Terminal (which pastes the string flavor) with
+            // nothing to paste.
+            pasteboard.clearContents()
+            if let file = clipping.imageFile {
+                pasteboard.writeObjects([Self.imagePasteboardItem(imageFile: file)])
             }
             lastChangeCount = pasteboard.changeCount
         }
@@ -1060,6 +1065,37 @@ final class ClipboardModule: NSObject, ObservableObject, FeatureModule {
                 Self.simulatePaste()
             }
         }
+    }
+
+    /// A pasteboard item for a stored image: the raster data (png/tiff) plus a
+    /// real file path (fileURL + string). Image types are written first so
+    /// image-aware apps still paste the picture, while terminals and file
+    /// targets — which read the string/fileURL — get a usable path.
+    private static func imagePasteboardItem(imageFile: String) -> NSPasteboardItem {
+        let item = NSPasteboardItem()
+        let url = imagesDirectory.appendingPathComponent(imageFile)
+        if let png = try? Data(contentsOf: url) {
+            item.setData(png, forType: .png)
+            if let tiff = NSImage(data: png)?.tiffRepresentation {
+                item.setData(tiff, forType: .tiff)
+            }
+        }
+        item.setString(url.absoluteString, forType: .fileURL)
+        item.setString(url.path, forType: .string)
+        return item
+    }
+
+    /// Right after we capture an image, macOS has left only raster data on the
+    /// live pasteboard. Re-publish it with the stored file's path added, so a
+    /// direct ⌘V into a terminal or file target works without first opening
+    /// history. Keeps our change-count in sync so we don't re-ingest our write.
+    private func enrichLivePasteboardWithImagePath(imageFile: String) {
+        let url = Self.imagesDirectory.appendingPathComponent(imageFile)
+        guard FileManager.default.fileExists(atPath: url.path) else { return }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.writeObjects([Self.imagePasteboardItem(imageFile: imageFile)])
+        lastChangeCount = pasteboard.changeCount
     }
 
     func delete(_ clipping: Clipping) {
