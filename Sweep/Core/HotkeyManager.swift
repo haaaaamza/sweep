@@ -99,6 +99,10 @@ final class HotkeyManager: ObservableObject {
 
     private var hotKeyRefs: [Slot: EventHotKeyRef] = [:]
     private var eventHandler: EventHandlerRef?
+    /// Slots whose combo is currently physically held down. Used to drop OS
+    /// key-repeat: while a key is held, Carbon sends repeated "pressed" events
+    /// with no "released" between them, and we count only the first.
+    private var pressedSlots: Set<Slot> = []
 
     /// Set once the user explicitly clears the clipboard shortcut, so the
     /// default ⌘⇧V isn't resurrected on the next launch.
@@ -158,27 +162,39 @@ final class HotkeyManager: ObservableObject {
 
     private func installHandler() {
         guard eventHandler == nil else { return }
-        var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard),
-                                      eventKind: UInt32(kEventHotKeyPressed))
+        // Listen for both press AND release so we can tell a fresh press from an
+        // OS key-repeat (a held combo repeats "pressed" with no "released").
+        var eventTypes = [
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed)),
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyReleased)),
+        ]
         InstallEventHandler(GetApplicationEventTarget(), { _, event, userData -> OSStatus in
             guard let userData, let event else { return noErr }
             var hotKeyID = EventHotKeyID()
             GetEventParameter(event, EventParamName(kEventParamDirectObject),
                               EventParamType(typeEventHotKeyID), nil,
                               MemoryLayout<EventHotKeyID>.size, nil, &hotKeyID)
+            let isRelease = GetEventKind(event) == UInt32(kEventHotKeyReleased)
             let manager = Unmanaged<HotkeyManager>.fromOpaque(userData).takeUnretainedValue()
             let slot = Slot(rawValue: hotKeyID.id)
             // Always hop to the main queue — Carbon does not guarantee it, and
             // off-main UI made the clipboard bezel miss shows / stick open.
             DispatchQueue.main.async {
+                guard let slot else { return }
+                if isRelease {
+                    manager.pressedSlots.remove(slot)
+                    return
+                }
+                // Drop auto-repeat: only the first press (before a release) counts.
+                guard !manager.pressedSlots.contains(slot) else { return }
+                manager.pressedSlots.insert(slot)
                 switch slot {
                 case .sweepAll: manager.action?()
                 case .clipboard: manager.clipboardAction?()
-                case nil: break
                 }
             }
             return noErr
-        }, 1, &eventType, Unmanaged.passUnretained(self).toOpaque(), &eventHandler)
+        }, 2, &eventTypes, Unmanaged.passUnretained(self).toOpaque(), &eventHandler)
     }
 
     private func register(_ slot: Slot) {

@@ -98,8 +98,10 @@ final class ClipboardBezelController: ObservableObject {
 
     private var panel: ClipboardBezelPanel?
     private var isShowing = false
-    /// Ignore modifier-release commits until this time (avoids flash-dismiss).
-    private var ignoreReleaseUntil: Date = .distantPast
+    /// Catches a modifier release that happened before our key monitor was
+    /// installed (a very quick ⌘⇧V tap): it commits shortly after showing if
+    /// the modifiers are already up, so the bezel never hangs open.
+    private var fastTapCommitWork: DispatchWorkItem?
     private var localKeyMonitor: Any?
     private var localFlagsMonitor: Any?
 
@@ -187,14 +189,40 @@ final class ClipboardBezelController: ObservableObject {
         hide()
     }
 
-    /// Release ⌘⇧ (etc.) → choose & hide. Ignored during the open grace window.
+    /// Release the shortcut's modifiers (⌘⇧ by default) → choose the current
+    /// clipping and hide. While the modifiers stay held the user keeps browsing
+    /// (tap the hotkey or arrows to cycle); letting go commits.
     func flagsChanged(_ flags: NSEvent.ModifierFlags) {
-        guard isShowing, Date() >= ignoreReleaseUntil else { return }
+        guard isShowing else { return }
         let required = Self.requiredModifiers(of: .clipboard)
         guard !required.isEmpty else { return }
         if flags.intersection(required).isEmpty {
             commit()
         }
+    }
+
+    /// Commit shortly after showing if the required modifiers are already up —
+    /// i.e. the user released them so fast that the release event was missed
+    /// while our monitor was being installed. Without this the bezel hangs open.
+    private func scheduleFastTapCommit() {
+        let required = Self.requiredModifiers(of: .clipboard)
+        guard !required.isEmpty else { return }   // modifierless shortcut: Return/Esc close it
+        fastTapCommitWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            guard let self, self.isShowing else { return }
+            self.fastTapCommitWork = nil
+            let current = NSEvent.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            if current.intersection(required).isEmpty {
+                self.commit()
+            }
+        }
+        fastTapCommitWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18, execute: work)
+    }
+
+    private func cancelFastTapCommit() {
+        fastTapCommitWork?.cancel()
+        fastTapCommitWork = nil
     }
 
     func handlePanelKeyDown(_ event: NSEvent) -> Bool {
@@ -304,15 +332,16 @@ final class ClipboardBezelController: ObservableObject {
         }
 
         isShowing = true
-        ignoreReleaseUntil = Date().addingTimeInterval(0.25)
         ClipboardModule.shared.setBezelPollingSuspended(true)
         panel.alphaValue = 1
         installLocalMonitors()
         panel.makeKeyAndOrderFront(nil)
         prefetchThumbnails(around: index)
+        scheduleFastTapCommit()
     }
 
     private func hide() {
+        cancelFastTapCommit()
         removeLocalMonitors()
         isShowing = false
         ClipboardModule.shared.setBezelPollingSuspended(false)
